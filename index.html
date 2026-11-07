@@ -164,15 +164,11 @@
 </div>
 
 <script>
-    // Inicializar datos del almacenamiento del navegador
     let data = JSON.parse(localStorage.getItem('finanzasData')) || { accounts: [], history: [] };
-    
-    // Contraseña fija asignada por defecto
     const CLAVE_MAESTRA = "1234";
 
     function checkAccess() {
         const input = document.getElementById('passwordInput').value;
-        
         if (input === CLAVE_MAESTRA) {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('appSection').style.display = 'flex';
@@ -208,3 +204,5 @@
     }
 
     function deleteAccount(id) {
+        if(confirm('¿Seguro que deseas eliminar esta cuenta?')) {
+            data.accounts = data.accounts.filter(acc => acc.id !== id);
