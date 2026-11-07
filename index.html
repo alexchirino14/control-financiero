@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Financiero Multimoneda</title>
+    <style>
+        :root {
+            --bg-primary: #f4f7f6;
+            --bg-card: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --color-income: #2ecc71;
+            --color-expense: #e74c3c;
+            --color-accent: #3498db;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        header h1 {
+            font-size: 24px;
+            color: var(--text-main);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Resumen de Saldos */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--color-accent);
+        }
+
+        .card.usd { border-left-color: #f1c40f; }
+        .card.eur { border-left-color: #3498db; }
+        .card.local { border-left-color: #9b59b6; }
+
+        .card-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .card-balance {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* Formulario y Controles */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-section, .history-section {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--bg-primary);
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--color-accent);
+        }
+
+        /* Botones del Sistema */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.1s, opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-income {
+            background-color: var(--color-income);
+        }
+
+        .btn-expense {
+            background-color: var(--color-expense);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Tabla de Historial */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            background-color: #f7fafc;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-income {
+            background-color: #e8f8f5;
+            color: var(--color-income);
+        }
+
+        .badge-expense {
+            background-color: #fdedec;
+            color: var(--color-expense);
+        }
+
+        .text-income { color: var(--color-income); font-weight: 600; }
+        .text-expense { color: var(--color-expense); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <header>
+        <h1>Control de Ingresos y Egresos</h1>
+        <p>Gestión Financiera Multimoneda Inteligente</p>
+    </header>
+
+    <!-- Resumen de Saldos Disponibles -->
+    <div class="summary-grid">
+        <div class="card usd">
+            <div class="card-title">Saldo Dólares (USD)</div>
+            <div class="card-balance">$ 1,250.00</div>
+        </div>
+        <div class="card eur">
+            <div class="card-title">Saldo Euros (EUR)</div>
+            <div class="card-balance">€ 420.00</div>
+        </div>
+        <div class="card local">
+            <div class="card-title">Saldo Moneda Local</div>
+            <div class="card-balance">Bs. 15,400.00</div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="main-content">
+        
+        <!-- Formulario de Registro -->
+        <div class="form-section">
+            <h2>Nueva Transacción</h2>
+            <form onsubmit="event.preventDefault();">
+                <div class="form-group">
+                    <label for="description">Descripción</label>
+                    <input type="text" id="description" class="form-control" placeholder="Ej. Pago de Freelance, Supermercado..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Monto</label>
+                    <input type="number" id="amount" class="form-control" placeholder="0.00" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="currency">Moneda</label>
+                    <select id="currency" class="form-control">
+                        <option value="USD">USD - Dólar Estadounidense</option>
+                        <option value="EUR">EUR - Euro</option>
+                        <option value="LOCAL">Moneda Local</option>
+                    </select>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-income">
+                        ➕ Ingreso
+                    </button>
+                    <button type="button" class="btn btn-expense">
+                        ➖ Egreso
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Historial de Movimientos -->
+        <div class="history-section">
+            <h2>Últimos Movimientos</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Tipo</th>
+                            <th>Moneda</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Diseño Web UI</td>
+                            <td><span class="badge badge-income">Ingreso</span></td>
+                            <td>USD</td>
+                            <td class="text-income">+$ 500.00</td>
+                        </tr>
+                        <tr>
+                            <td>Compra de Alimentos</td>
+                            <td><span class="badge badge-expense">Egreso</span></td>
+                            <td>LOCAL</td>
+                            <td class="text-expense">-Bs. 450.00</td>
+                        </tr>
+                        <tr>
+                            <td>Suscripción Mensual</td>
+                            <td><span class="badge badge-expense">Egreso</span></td>
+                            <td>EUR</td>
+                            <td class="text-expense">-€ 15.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
