@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Financiero Multimoneda Inteligente</title>
+    <title>Control Financiero Protegido</title>
     <style>
         :root {
             --bg-primary: #f4f7f6;
@@ -18,13 +18,26 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg-primary); color: var(--text-main); padding: 20px; display: flex; justify-content: center; }
+        body { background-color: var(--bg-primary); color: var(--text-main); padding: 20px; display: flex; justify-content: center; min-height: 100vh; align-items: flex-start; }
+        
+        /* Pantalla de Login */
+        .login-screen {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            margin-top: 10vh;
+            text-align: center;
+        }
+
+        /* Dashboard Principal */
         .dashboard { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 20px; }
-        header { text-align: center; padding: 10px 0; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 2px solid #e2e8f0; }
         header h1 { font-size: 24px; }
         header p { color: var(--text-muted); font-size: 14px; }
 
-        /* Sección de Cuentas */
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         .card { background: var(--bg-card); padding: 20px; border-radius: var(--border-radius); box-shadow: var(--shadow); border-left: 5px solid var(--color-accent); position: relative; }
         .card-title { font-size: 14px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
@@ -32,7 +45,6 @@
         .btn-delete-account { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 12px; }
         .btn-delete-account:hover { color: var(--color-expense); }
 
-        /* Formularios y Tablas */
         .main-content { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
         @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
         .form-section, .history-section { background: var(--bg-card); padding: 25px; border-radius: var(--border-radius); box-shadow: var(--shadow); }
@@ -48,6 +60,7 @@
         .btn-income { background-color: var(--color-income); }
         .btn-expense { background-color: var(--color-expense); }
         .btn-primary { background-color: var(--color-accent); width: 100%; margin-top: 5px; }
+        .btn-logout { background-color: #718096; padding: 8px 15px; font-size: 13px; }
         .btn:hover { opacity: 0.9; }
 
         /* Tabla */
@@ -64,24 +77,35 @@
 </head>
 <body>
 
-<div class="dashboard">
+<!-- PANTALLA DE ACCESO -->
+<div id="loginSection" class="login-screen">
+    <h2 id="loginTitle" style="border:none; margin-bottom:20px;">Iniciar Sesión</h2>
+    <div class="form-group" style="text-align:left;">
+        <label id="passLabel" for="passwordInput">Introduce tu Contraseña</label>
+        <input type="password" id="passwordInput" class="form-control" placeholder="******">
+    </div>
+    <button class="btn btn-primary" onclick="checkAccess()" id="loginBtn">Ingresar</button>
+</div>
+
+<!-- SISTEMA FINANCIERO (OCULTO AL INICIO) -->
+<div id="appSection" class="dashboard" style="display: none;">
     <header>
-        <h1>Control Financiero Dinámico</h1>
-        <p>Cuentas personalizadas con saldos en tiempo real</p>
+        <div>
+            <h1>Control Financiero Protegido</h1>
+            <p>Cuentas personales resguardadas</p>
+        </div>
+        <button class="btn btn-logout" onclick="logout()">🔒 Cerrar Sesión</button>
     </header>
 
-    <!-- Panel de Cuentas Dinámicas -->
     <div class="summary-grid" id="accountsContainer"></div>
 
     <div class="main-content">
-        <!-- Controles Izquierda -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
-            <!-- Creador de Cuentas -->
             <div class="form-section">
                 <h2>1. Crear Nueva Cuenta</h2>
                 <div class="form-group">
                     <label>Nombre de la Cuenta</label>
-                    <input type="text" id="newAccountName" class="form-control" placeholder="Ej. Banesco, Efectivo, Binance">
+                    <input type="text" id="newAccountName" class="form-control" placeholder="Ej. Efectivo, Cuenta Zelle">
                 </div>
                 <div class="form-group">
                     <label>Monto Inicial</label>
@@ -99,7 +123,6 @@
                 <button class="btn btn-primary" onclick="createAccount()">Crear Cuenta</button>
             </div>
 
-            <!-- Movimientos -->
             <div class="form-section">
                 <h2>2. Registrar Operación</h2>
                 <div class="form-group">
@@ -108,7 +131,7 @@
                 </div>
                 <div class="form-group">
                     <label>Descripción</label>
-                    <input type="text" id="description" class="form-control" placeholder="Ej. Pago de servicios, Nómina">
+                    <input type="text" id="description" class="form-control" placeholder="Ej. Compras, Pago Factura">
                 </div>
                 <div class="form-group">
                     <label>Monto</label>
@@ -121,7 +144,6 @@
             </div>
         </div>
 
-        <!-- Historial Derecha -->
         <div class="history-section">
             <h2>Historial de Movimientos</h2>
             <div class="table-container">
@@ -142,71 +164,39 @@
 </div>
 
 <script>
-    // Cargar datos guardados o iniciar vacíos
+    // Inicializar datos y contraseña
     let data = JSON.parse(localStorage.getItem('finanzasData')) || { accounts: [], history: [] };
+    let savedPassword = localStorage.getItem('finanzasPassword');
 
-    function saveData() {
-        localStorage.setItem('finanzasData', JSON.stringify(data));
-        render();
+    // Configuración inicial de pantalla según si ya existe contraseña
+    if (!savedPassword) {
+        document.getElementById('loginTitle').innerText = "Registrar Contraseña";
+        document.getElementById('passLabel').innerText = "Crea una contraseña para tu sistema";
+        document.getElementById('loginBtn').innerText = "Definir Contraseña";
     }
 
-    function createAccount() {
-        const name = document.getElementById('newAccountName').value.trim();
-        const balance = parseFloat(document.getElementById('newAccountBalance').value) || 0;
-        const currency = document.getElementById('newAccountCurrency').value;
-
-        if(!name) return alert('Por favor, ingresa un nombre para la cuenta');
-
-        data.accounts.push({ id: Date.now(), name, balance, currency });
+    function checkAccess() {
+        const input = document.getElementById('passwordInput').value;
         
-        // Limpiar campos
-        document.getElementById('newAccountName').value = '';
-        document.getElementById('newAccountBalance').value = '';
-        saveData();
-    }
-
-    function deleteAccount(id) {
-        if(confirm('¿Seguro que deseas eliminar esta cuenta?')) {
-            data.accounts = data.accounts.filter(acc => acc.id !== id);
-            saveData();
+        if (!savedPassword) {
+            if (input.trim().length < 4) return alert('La contraseña debe tener al menos 4 caracteres.');
+            localStorage.setItem('finanzasPassword', input);
+            savedPassword = input;
+            alert('¡Contraseña configurada con éxito!');
         }
-    }
 
-    function processTransaction(type) {
-        const accountId = parseInt(document.getElementById('transactionAccount').value);
-        const description = document.getElementById('description').value.trim() || 'Transacción general';
-        const amount = parseFloat(document.getElementById('amount').value);
-
-        if(!accountId) return alert('Primero debes seleccionar o crear una cuenta');
-        if(!amount || amount <= 0) return alert('Ingresa un monto válido mayor a 0');
-
-        const account = data.accounts.find(acc => acc.id === accountId);
-        
-        if(type === 'ingreso') {
-            account.balance += amount;
+        if (input === savedPassword) {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('appSection').style.display = 'flex';
+            document.getElementById('passwordInput').value = '';
+            render();
         } else {
-            account.balance -= amount;
+            alert('Contraseña incorrecta. Inténtalo de nuevo.');
         }
-
-        data.history.unshift({
-            accountName: account.name,
-            description,
-            type,
-            currency: account.currency,
-            amount
-        });
-
-        // Limpiar campos
-        document.getElementById('description').value = '';
-        document.getElementById('amount').value = '';
-        saveData();
     }
 
-    function render() {
-        const accountsContainer = document.getElementById('accountsContainer');
-        const transactionAccountSelect = document.getElementById('transactionAccount');
-        const historyBody = document.getElementById('historyBody');
-
-        // Renderizar Tarjetas de Cuentas
-        accountsContainer.innerHTML = data.accounts.length === 0 ? '<p style="color:var(--text-muted); padding:10px;">No hay cuentas creadas. Crea una abajo.</p>' : '';
-        transactionAccountSelect.innerHTML = '';
+    function logout() {
+        document.getElementById('appSection').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('loginTitle').innerText = "Iniciar Sesión";
+        document.getElementById('passLabel').innerText = "Introduce tu Contraseña";
