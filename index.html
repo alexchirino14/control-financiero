@@ -28,7 +28,7 @@
             box-shadow: var(--shadow);
             width: 100%;
             max-width: 400px;
-            margin-top: 10vh;
+            margin-top: 15vh;
             text-align: center;
         }
 
@@ -79,12 +79,12 @@
 
 <!-- PANTALLA DE ACCESO -->
 <div id="loginSection" class="login-screen">
-    <h2 id="loginTitle" style="border:none; margin-bottom:20px;">Iniciar Sesión</h2>
+    <h2 style="border:none; margin-bottom:20px;">Iniciar Sesión</h2>
     <div class="form-group" style="text-align:left;">
-        <label id="passLabel" for="passwordInput">Introduce tu Contraseña</label>
+        <label for="passwordInput">Introduce tu Contraseña</label>
         <input type="password" id="passwordInput" class="form-control" placeholder="******">
     </div>
-    <button class="btn btn-primary" onclick="checkAccess()" id="loginBtn">Ingresar</button>
+    <button class="btn btn-primary" onclick="checkAccess()">Ingresar</button>
 </div>
 
 <!-- SISTEMA FINANCIERO (OCULTO AL INICIO) -->
@@ -164,28 +164,16 @@
 </div>
 
 <script>
-    // Inicializar datos y contraseña
+    // Inicializar datos del almacenamiento del navegador
     let data = JSON.parse(localStorage.getItem('finanzasData')) || { accounts: [], history: [] };
-    let savedPassword = localStorage.getItem('finanzasPassword');
-
-    // Configuración inicial de pantalla según si ya existe contraseña
-    if (!savedPassword) {
-        document.getElementById('loginTitle').innerText = "Registrar Contraseña";
-        document.getElementById('passLabel').innerText = "Crea una contraseña para tu sistema";
-        document.getElementById('loginBtn').innerText = "Definir Contraseña";
-    }
+    
+    // Contraseña fija asignada por defecto
+    const CLAVE_MAESTRA = "1234";
 
     function checkAccess() {
         const input = document.getElementById('passwordInput').value;
         
-        if (!savedPassword) {
-            if (input.trim().length < 4) return alert('La contraseña debe tener al menos 4 caracteres.');
-            localStorage.setItem('finanzasPassword', input);
-            savedPassword = input;
-            alert('¡Contraseña configurada con éxito!');
-        }
-
-        if (input === savedPassword) {
+        if (input === CLAVE_MAESTRA) {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('appSection').style.display = 'flex';
             document.getElementById('passwordInput').value = '';
@@ -198,5 +186,25 @@
     function logout() {
         document.getElementById('appSection').style.display = 'none';
         document.getElementById('loginSection').style.display = 'block';
-        document.getElementById('loginTitle').innerText = "Iniciar Sesión";
-        document.getElementById('passLabel').innerText = "Introduce tu Contraseña";
+        document.getElementById('passwordInput').value = '';
+    }
+
+    function saveData() {
+        localStorage.setItem('finanzasData', JSON.stringify(data));
+        render();
+    }
+
+    function createAccount() {
+        const name = document.getElementById('newAccountName').value.trim();
+        const balance = parseFloat(document.getElementById('newAccountBalance').value) || 0;
+        const currency = document.getElementById('newAccountCurrency').value;
+
+        if(!name) return alert('Por favor, ingresa un nombre para la cuenta');
+
+        data.accounts.push({ id: Date.now(), name, balance, currency });
+        document.getElementById('newAccountName').value = '';
+        document.getElementById('newAccountBalance').value = '';
+        saveData();
+    }
+
+    function deleteAccount(id) {
