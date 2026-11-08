@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Financiero Corporativo v4.0</title>
+    <title>Sistema Financiero Corporativo Pro v6.0</title>
     <style>
         :root { 
             --primary: #2563eb; 
@@ -32,16 +32,22 @@
         @media(max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card h3 { margin-bottom: 15px; font-size: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: var(--primary); }
+        
+        /* ESTILOS DE LA VENTANA EMERGENTE PARA MOSTRAR FOTOS */
+        .modal-recibo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-content-recibo { background: white; padding: 20px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center; position: relative; }
+        .modal-content-recibo img { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 6px; margin-top: 10px; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; font-weight: bold; cursor: pointer; color: var(--gray); }
         .capital-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .cap-box { background: var(--light); padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary); text-align: left; }
         .cap-box.ingresos { border-left-color: var(--success); }
         .cap-box.egresos { border-left-color: var(--danger); }
         .cap-box span { font-size: 11px; color: var(--gray); text-transform: uppercase; }
-        .cap-box p { font-size: 15px; font-weight: bold; margin-top: 5px; }
+        .cap-box p { font-size: 14px; font-weight: bold; margin-top: 5px; line-height: 1.4; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background: var(--light); color: var(--gray); }
-        .report-filters { display: flex; gap: 8px; margin-bottom: 15px; }
+        .report-filters { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
         .report-filters button { background: #e2e8f0; color: var(--dark); padding: 6px 12px; }
         .report-filters button.active { background: var(--primary); color: white; }
         .badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; }
@@ -88,16 +94,17 @@
                 </div>
                 <h2>Bienvenido al sistema control financiero</h2>
             </div>
-            <div><span id="user-display" style="margin-right:15px; font-weight:bold;"></span><button onclick="ejecutarLogout()" style="background:var(--danger); color:white;">Cerrar Sesión</button></div>
+            <div><span id="user-display" style="margin-right:15px; font-weight:bold;"></span><button onclick="ejecutarLogout()">Cerrar Sesión</button></div>
         </header>
 
         <div class="main-layout">
             <div class="sidebar">
                 <div class="card" id="bcv-card">
-                    <h3>Tasa Oficial BCV</h3>
-                    <div class="form-group"><label>Tasa Activa (Bs / $)</label><input type="number" id="bcv-rate-input" value="48.50" step="0.01" onchange="actualizarTasaBCV()"></div>
+                    <h3>Mesas de Cambio Corporativas</h3>
+                    <div class="form-group"><label>Tasa USD BCV (Bs)</label><input type="number" id="bcv-rate-input" value="48.50" step="0.01" onchange="actualizarTasasMúltiples()"></div>
+                    <div class="form-group"><label>Tasa EUR BCV (Bs)</label><input type="number" id="bcv-eur-input" value="51.20" step="0.01" onchange="actualizarTasasMúltiples()"></div>
+                    <div class="form-group"><label>Tasa USDT (Bs)</label><input type="number" id="bcv-usdt-input" value="56.80" step="0.01" onchange="actualizarTasasMúltiples()"></div>
                 </div>
-
                 <div class="card" id="admin-card">
                     <h3>Gestión de Usuarios (Admin)</h3>
                     <div class="form-group"><label>Usuario</label><input type="text" id="new-username"></div>
@@ -105,7 +112,7 @@
                     <div class="form-group">
                         <label>Rol Corporativo</label>
                         <select id="new-role">
-                            <option value="estandar">Estándar (Lectura)</option>
+                            <option value="estandar">Estándar (Lectura y Tasas)</option>
                             <option value="cajero">Cajero (Solo Movimientos)</option>
                             <option value="contador">Contador (Movimientos e Informes)</option>
                             <option value="supervisor">Supervisor (Aprobaciones y Tasas)</option>
@@ -113,12 +120,19 @@
                         </select>
                     </div>
                     <button class="btn-block" onclick="crearUsuario()">+ Guardar Usuario</button>
-                    <table id="users-table" style="font-size:11px;"><thead><tr><th>User</th><th>Rol</th><th>X</th></tr></thead><tbody></tbody></table>
+                    <table id="users-table" style="font-size:11px; margin-top:10px;"><thead><tr><th>User</th><th>Rol</th><th>X</th></tr></thead><tbody></tbody></table>
+                    
+                    <h3 style="margin-top:20px; font-size:14px; border-top:1px solid #e2e8f0; padding-top:10px; color:var(--primary);">Copia de Seguridad Total</h3>
+                    <button class="btn-block" style="background:var(--supervisor); margin-bottom:10px;" onclick="exportarRespaldoSistema()">📤 Exportar Respaldo (.txt)</button>
+                    <div class="form-group" style="margin-top:5px;">
+                        <label style="font-size:11px; color:var(--gray);">Importar Archivo de Respaldo:</label>
+                        <input type="file" id="backup-file-input" accept=".txt" style="font-size:11px; padding:4px;" onchange="importarRespaldoSistema(event)">
+                    </div>
                 </div>
                 <div class="card" id="form-cuenta-card">
-                    <h3>Nueva Cuenta</h3>
-                    <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Banesco"></div>
-                    <div class="form-group"><label>Moneda</label><select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="VES">VES (Bs.)</option></select></div>
+                    <h3>Nueva Cuenta Bancaria / Wallet</h3>
+                    <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Banesco o Binance"></div>
+                    <div class="form-group"><label>Moneda / Activo</label><select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="USDT">USDT (Transit)</option><option value="VES">VES (Bs.)</option></select></div>
                     <div class="form-group"><label>Monto Inicial</label><input type="number" id="acc-balance" value="0" step="0.01"></div>
                     <button class="btn-block" style="background:var(--dark); color:white;" onclick="crearCuenta()">+ Guardar Cuenta</button>
                 </div>
@@ -128,72 +142,89 @@
                     <div class="form-group"><label>Tipo de Operación</label><select id="tx-type"><option value="Ingreso">↑ Ingreso (Suma al Capital)</option><option value="Egreso">↓ Egreso / Gasto (Resta del Capital)</option></select></div>
                     <div class="form-group"><label>Cuenta Seleccionada</label><select id="tx-account" class="acc-select-bind"></select></div>
                     <div class="form-group"><label>Monto</label><input type="number" id="tx-amount" value="0" step="0.01"></div>
-                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Depósito"></div>
+                    <div class="form-group"><label>Nro. Referencia Bancaria</label><input type="text" id="tx-reference" placeholder="Ej. 10293848 (Opcional)"></div>
+                    
+                    <!-- CASILLA DE ADJUNTO PARA COMPROBANTE/RECIBO BANCARIO INCORPORADA -->
+                    <div class="form-group">
+                        <label>Foto / Captura del Recibo</label>
+                        <input type="file" id="tx-image-file" accept="image/*" style="font-size:12px; padding:4px;">
+                    </div>
+                    
+                    <div class="form-group"><label>Descripción / Detalle</label><input type="text" id="tx-desc" placeholder="Ej. Pago de Factura"></div>
                     <button class="btn-block" style="background:var(--primary); color:white;" onclick="procesarMovimientoDesplegable()">Ejecutar Operación</button>
                 </div>
             </div>
             <div class="content">
                 <div class="card" style="background: linear-gradient(135deg, #eff6ff, #ffffff); border: 1px solid #bfdbfe;">
                     <h3>Calculadora de Reconversión USD ⇄ VES (Tasa BCV)</h3>
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <div class="form-group" style="flex: 1; min-width: 140px;"><label>Monto en Dólares (USD)</label><input type="number" id="calc-usd" value="1" step="0.01" oninput="calcularDeUSDaVES()"></div>
-                        <div style="display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: var(--primary); padding-top: 15px;"> ⇄ </div>
-                        <div class="form-group" style="flex: 1; min-width: 140px;"><label>Monto Equivalente en Bolívares (VES)</label><input type="number" id="calc-ves" value="0" step="0.01" oninput="calcularDeVESaUSD()"></div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                        <div class="form-group"><label>Dólares (USD)</label><input type="number" id="calc-usd" value="1" step="0.01" oninput="calcularDesdeBase('USD')"></div>
+                        <div class="form-group"><label>Euros (EUR)</label><input type="number" id="calc-eur" value="0" step="0.01" oninput="calcularDesdeBase('EUR')"></div>
+                        <div class="form-group"><label>Cripto (USDT)</label><input type="number" id="calc-usdt" value="0" step="0.01" oninput="calcularDesdeBase('USDT')"></div>
+                        <div class="form-group"><label>Bolívares (VES)</label><input type="number" id="calc-ves" value="0" step="0.01" oninput="calcularDesdeBase('VES')"></div>
                     </div>
                 </div>
 
-                <!-- GRÁFICAS VISUALES DE CAPITAL POR DIVISA -->
                 <div class="card">
-                    <h3>Análisis Estadístico Visual de Capitales (Proyección BCV)</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 10px;">
-                        <div>
-                            <div class="chart-bar-container" id="chart-usd-container"></div>
-                            <div class="chart-bar-title">Distribución de Fondos en Cuentas USD ($)</div>
-                        </div>
-                        <div>
-                            <div class="chart-bar-container" id="chart-ves-container"></div>
-                            <div class="chart-bar-title">Distribución de Fondos en Cuentas VES (Bs.)</div>
-                        </div>
+                    <h3>Análisis Estadístico Visual de Capitales Activos</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 10px;">
+                        <div><div class="chart-bar-container" id="chart-usd-container"></div><div class="chart-bar-title">Fondos USD ($)</div></div>
+                        <div><div class="chart-bar-container" id="chart-eur-container"></div><div class="chart-bar-title">Fondos EUR (€)</div></div>
+                        <div><div class="chart-bar-container" id="chart-usdt-container"></div><div class="chart-bar-title">Fondos USDT (₮)</div></div>
+                        <div><div class="chart-bar-container" id="chart-ves-container"></div><div class="chart-bar-title">Fondos VES (Bs.)</div></div>
                     </div>
                 </div>
+                <div class="card"><h3>Capital Neto Separado y Consolidado</h3><div id="capital-container"></div></div>
+                <div class="card"><h3>Mis Cuentas Activas (Saldos Disponibles con Equivalencias)</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
 
-                <div class="card"><h3>Capital Neto e Historial por Divisa</h3><div id="capital-container"></div></div>
-                <div class="card"><h3>Mis Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
-
-                <!-- PASIVOS: CUENTAS POR PAGAR CON FECHA DE VENCIMIENTO -->
+                <!-- PASIVOS: CUENTAS POR PAGAR -->
                 <div class="card" id="cxp-card-panel">
                     <h3>Cuentas Pendientes por Pagar (Pasivos con Alerta de Vencimiento)</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
                         <div class="form-group"><label>Proveedor</label><input type="text" id="cxp-prov"></div>
                         <div class="form-group"><label>Monto</label><input type="number" id="cxp-amount" value="0" step="0.01"></div>
-                        <div class="form-group"><label>Moneda</label><select id="cxp-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="VES">VES</option></select></div>
-                        <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="cxp-date"></div>
-                        <button style="background:var(--warning); color:white; margin-bottom:12px;" onclick="crearCXP()">+ Registrar Deuda</button>
+                        <div class="form-group"><label>Moneda</label><select id="cxp-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="USDT">USDT</option><option value="VES">VES</option></select></div>
+                        <div class="form-group"><label>Vencimiento</label><input type="date" id="cxp-date"></div>
+                        <button style="background:var(--warning); color:white; margin-bottom:12px;" onclick="crearCXP()">+ Registrar</button>
                     </div>
                     <table id="cxp-table"><thead><tr><th>Proveedor</th><th>Monto</th><th>Moneda</th><th>Vence</th><th>Estado</th><th>Pagar Desde</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
-                <!-- ACTIVOS: CUENTAS POR COBRAR CON FECHA DE VENCIMIENTO -->
+                <!-- ACTIVOS: CUENTAS POR COBRAR -->
                 <div class="card" id="cxc-card-panel">
                     <h3>Cuentas Pendientes por Cobrar (Activos con Alerta de Vencimiento)</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
                         <div class="form-group"><label>Cliente</label><input type="text" id="cxc-cli"></div>
                         <div class="form-group"><label>Monto</label><input type="number" id="cxc-amount" value="0" step="0.01"></div>
-                        <div class="form-group"><label>Moneda</label><select id="cxc-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="VES">VES</option></select></div>
-                        <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="cxc-date"></div>
-                        <button style="background:var(--success); color:white; margin-bottom:12px;" onclick="crearCXC()">+ Registrar Cobro</button>
+                        <div class="form-group"><label>Moneda</label><select id="cxc-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="USDT">USDT</option><option value="VES">VES</option></select></div>
+                        <div class="form-group"><label>Vencimiento</label><input type="date" id="cxc-date"></div>
+                        <button style="background:var(--success); color:white; margin-bottom:12px;" onclick="crearCXC()">+ Registrar</button>
                     </div>
                     <table id="cxc-table"><thead><tr><th>Cliente</th><th>Monto</th><th>Moneda</th><th>Vence</th><th>Estado</th><th>Recibir En</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
 
+                <!-- HISTORIAL COMPLETO CON COLUMNA DE RECIBO -->
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px;">
-                        <h3 style="border: none; margin: 0;">Reporte Temporal de Movimientos</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="border: none; margin: 0;">Historial y Auditoría Temporal de Movimientos</h3>
                         <button id="btn-excel-export" style="background: var(--success); color: white;" onclick="descargarReporteExcel()">🟢 Descargar Excel (.csv)</button>
                     </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="color: var(--primary);">🔍 Buscador en tiempo real (Filtra por descripción, cuenta o referencia):</label>
+                        <input type="text" id="report-search-input" placeholder="Escribe palabras clave o números de referencia para auditar..." oninput="actualizarTablaReportes()">
+                    </div>
                     <div class="report-filters"><button id="btn-rep-all" class="active" onclick="filterReports('todos')">Todos</button><button id="btn-rep-w" onclick="filterReports('semanal')">Semanal</button><button id="btn-rep-f" onclick="filterReports('quincenal')">Quincenal</button><button id="btn-rep-m" onclick="filterReports('mensual')">Mensual</button></div>
-                    <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
+                    <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Ref. Bancaria</th><th>Recibo</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- VENTANA EMERGENTE (MODAL) PARA EL VISOR DE FOTOS -->
+    <div id="receipt-modal" class="modal-recibo hidden">
+        <div class="modal-content-recibo">
+            <span class="close-modal" onclick="cerrarVisorRecibo()">&times;</span>
+            <h3 style="color: var(--primary); margin-bottom: 10px;">Comprobante de Transacción</h3>
+            <div id="modal-img-container"></div>
         </div>
     </div>
     <script>
@@ -203,6 +234,8 @@
         if (!localStorage.getItem('cxp')) { localStorage.setItem('cxp', JSON.stringify()); }
         if (!localStorage.getItem('cxc')) { localStorage.setItem('cxc', JSON.stringify()); }
         if (!localStorage.getItem('bcv_rate')) { localStorage.setItem('bcv_rate', "48.50"); }
+        if (!localStorage.getItem('bcv_eur')) { localStorage.setItem('bcv_eur', "51.20"); }
+        if (!localStorage.getItem('bcv_usdt')) { localStorage.setItem('bcv_usdt', "56.80"); }
 
         var dbUsuarios = JSON.parse(localStorage.getItem('usuarios'));
         var dbCuentas = JSON.parse(localStorage.getItem('cuentas'));
@@ -210,6 +243,8 @@
         var dbCXP = JSON.parse(localStorage.getItem('cxp'));
         var dbCXC = JSON.parse(localStorage.getItem('cxc'));
         var bcvRate = parseFloat(localStorage.getItem('bcv_rate'));
+        var bcvEur = parseFloat(localStorage.getItem('bcv_eur'));
+        var bcvUsdt = parseFloat(localStorage.getItem('bcv_usdt'));
         var usuarioActivo = null; var filtroTiempoActual = 'todos';
 
         function ejecutarLogin() {
@@ -223,14 +258,13 @@
                 document.getElementById('dashboard-section').classList.remove('hidden');
                 document.getElementById('user-display').innerText = usuarioActivo.user + " (" + usuarioActivo.role.toUpperCase() + ")";
                 document.getElementById('bcv-rate-input').value = bcvRate;
-                establecerPermisosPorRol();
-                inicializarTablasDashboard(); 
-                calcularDeUSDaVES();
+                document.getElementById('bcv-eur-input').value = bcvEur;
+                document.getElementById('bcv-usdt-input').value = bcvUsdt;
+                establecerPermisosPorRol(); inicializarTablasDashboard(); calcularDesdeBase('USD');
             } else { alert("Usuario o clave incorrectos."); }
         }
         function establecerPermisosPorRol() {
             var r = usuarioActivo.role;
-            // Ocultar por defecto
             document.getElementById('admin-card').classList.add('hidden');
             document.getElementById('bcv-card').classList.add('hidden');
             document.getElementById('form-cuenta-card').classList.add('hidden');
@@ -257,6 +291,8 @@
                 document.getElementById('btn-excel-export').classList.remove('hidden');
             } else if (r === 'cajero') {
                 document.getElementById('form-movimiento-card').classList.remove('hidden');
+            } else if (r === 'estandar') {
+                document.getElementById('bcv-card').classList.remove('hidden');
             }
         }
 
@@ -280,54 +316,120 @@
         function eliminarUsuario(nombre) { dbUsuarios = dbUsuarios.filter(function(i) { return i.user !== nombre; }); localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); actualizarListaUsuarios(); }
         function inicializarTablasDashboard() { actualizarTablaCuentas(); actualizarResumenCapital(); actualizarDesplegableCuentas(); actualizarTablaReportes(); renderCXP(); renderCXC(); dibujarGraficasCapital(); }
 
-        function actualizarTasaBCV() {
-            var val = parseFloat(document.getElementById('bcv-rate-input').value);
-            if(val > 0) { bcvRate = val; localStorage.setItem('bcv_rate', bcvRate.toFixed(2)); calcularDeUSDaVES(); inicializarTablasDashboard(); }
+        function exportarRespaldoSistema() {
+            var backupData = {
+                usuarios: dbUsuarios, cuentas: dbCuentas, transacciones: dbTransacciones, cxp: dbCXP, cxc: dbCXC,
+                rate_usd: bcvRate, rate_eur: bcvEur, rate_usdt: bcvUsdt
+            };
+            var b = new Blob([JSON.stringify(backupData)], { type: 'text/plain;charset=utf-8;' }), link = document.createElement("a");
+            link.href = URL.createObjectURL(b); link.setAttribute("download", "respaldo_financiero_total.txt");
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
-        function calcularDeUSDaVES() { var usd = parseFloat(document.getElementById('calc-usd').value) || 0; document.getElementById('calc-ves').value = (usd * bcvRate).toFixed(2); }
-        function calcularDeVESaUSD() { var ves = parseFloat(document.getElementById('calc-ves').value) || 0; document.getElementById('calc-usd').value = bcvRate > 0 ? (ves / bcvRate).toFixed(2) : 0; }
+
+        function importarRespaldoSistema(event) {
+            var file = event.target.files; if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var data = JSON.parse(e.target.result);
+                    if(data.usuarios && data.cuentas && data.transacciones) {
+                        dbUsuarios = data.usuarios; dbCuentas = data.cuentas; dbTransacciones = data.transacciones;
+                        dbCXP = data.cxp ||; dbCXC = data.cxc ||; bcvRate = data.rate_usd || 48.50; bcvEur = data.rate_eur || 51.20; bcvUsdt = data.rate_usdt || 56.80;
+                        saveAll(); localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); localStorage.setItem('bcv_rate', bcvRate.toFixed(2)); localStorage.setItem('bcv_eur', bcvEur.toFixed(2)); localStorage.setItem('bcv_usdt', bcvUsdt.toFixed(2));
+                        alert("¡Respaldo restaurado con éxito!"); location.reload();
+                    } else { alert("Formato incorrecto."); }
+                } catch(err) { alert("Error al procesar el archivo."); }
+            }; reader.readAsText(file);
+        }
+        function actualizarTasasMúltiples() {
+            var u = parseFloat(document.getElementById('bcv-rate-input').value) || 1;
+            var e = parseFloat(document.getElementById('bcv-eur-input').value) || 1;
+            var t = parseFloat(document.getElementById('bcv-usdt-input').value) || 1;
+            if(u>0 && e>0 && t>0) {
+                bcvRate = u; bcvEur = e; bcvUsdt = t;
+                localStorage.setItem('bcv_rate', bcvRate.toFixed(2)); localStorage.setItem('bcv_eur', bcvEur.toFixed(2)); localStorage.setItem('bcv_usdt', bcvUsdt.toFixed(2));
+                inicializarTablasDashboard(); calcularDesdeBase('USD');
+            }
+        }
+
+        function calcularDesdeBase(moneda) {
+            var vBs = 0;
+            if (moneda === 'USD') vBs = (parseFloat(document.getElementById('calc-usd').value) || 0) * bcvRate;
+            if (moneda === 'EUR') vBs = (parseFloat(document.getElementById('calc-eur').value) || 0) * bcvEur;
+            if (moneda === 'USDT') vBs = (parseFloat(document.getElementById('calc-usdt').value) || 0) * bcvUsdt;
+            if (moneda === 'VES') vBs = parseFloat(document.getElementById('calc-ves').value) || 0;
+
+            if(moneda !== 'USD') document.getElementById('calc-usd').value = bcvRate > 0 ? (vBs / bcvRate).toFixed(2) : 0;
+            if(moneda !== 'EUR') document.getElementById('calc-eur').value = bcvEur > 0 ? (vBs / bcvEur).toFixed(2) : 0;
+            if(moneda !== 'USDT') document.getElementById('calc-usdt').value = bcvUsdt > 0 ? (vBs / bcvUsdt).toFixed(2) : 0;
+            if(moneda !== 'VES') document.getElementById('calc-ves').value = vBs.toFixed(2);
+        }
+
         function crearCuenta() {
             var n = document.getElementById('acc-name').value.trim(), m = document.getElementById('acc-currency').value, b = parseFloat(document.getElementById('acc-balance').value) || 0; if (!n) return alert("Indique un nombre.");
             dbCuentas.push({ id: Date.now(), name: n, currency: m, current: b }); saveAll(); inicializarTablasDashboard(); document.getElementById('acc-name').value = ''; document.getElementById('acc-balance').value = '0';
         }
-
         function procesarMovimientoDesplegable() {
-            var tipo = document.getElementById('tx-type').value, id = parseInt(document.getElementById('tx-account').value), monto = parseFloat(document.getElementById('tx-amount').value) || 0, desc = document.getElementById('tx-desc').value.trim() || 'Movimiento general'; if (!id || monto <= 0) return alert("Datos de transacción inválidos.");
-            var cuenta = dbCuentas.find(a => a.id === id); if (tipo === 'Egreso' && cuenta.current < monto) { if (!confirm("Fondos insuficientes. ¿Forzar el débito?")) return; }
-            cuenta.current += (tipo === 'Ingreso' ? monto : -monto); dbTransacciones.push({ date: new Date().toISOString(), accountId: id, accountName: cuenta.name, currency: cuenta.currency, type: tipo, desc: desc, amount: monto });
-            saveAll(); inicializarTablasDashboard(); document.getElementById('tx-amount').value = '0'; document.getElementById('tx-desc').value = '';
+            var tipo = document.getElementById('tx-type').value, id = parseInt(document.getElementById('tx-account').value), monto = parseFloat(document.getElementById('tx-amount').value) || 0;
+            var ref = document.getElementById('tx-reference').value.trim() || 'S/R';
+            var desc = document.getElementById('tx-desc').value.trim() || 'Movimiento general'; 
+            var fileInput = document.getElementById('tx-image-file');
+            if (!id || monto <= 0) return alert("Datos de transacción inválidos.");
+
+            var cuenta = dbCuentas.find(a => a.id === id);
+            if (tipo === 'Egreso' && cuenta.current < monto) { if (!confirm("Fondos insuficientes. ¿Forzar?")) return; }
+
+            // Lógica para comprimir y empaquetar la captura de pantalla en Base64
+            if (fileInput.files && fileInput.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    guardarMovimientoCompleto(tipo, id, cuenta, monto, ref, desc, e.target.result);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                guardarMovimientoCompleto(tipo, id, cuenta, monto, ref, desc, null);
+            }
+        }
+
+        function guardarMovimientoCompleto(tipo, id, cuenta, monto, ref, desc, imagenBase64) {
+            cuenta.current += (tipo === 'Ingreso' ? monto : -monto); 
+            dbTransacciones.push({ 
+                date: new Date().toISOString(), accountId: id, accountName: cuenta.name, 
+                currency: cuenta.currency, type: tipo, reference: ref, desc: desc, amount: monto, imagen: imagenBase64 
+            });
+            saveAll(); inicializarTablasDashboard();
+            document.getElementById('tx-amount').value = '0'; document.getElementById('tx-reference').value = ''; 
+            document.getElementById('tx-desc').value = ''; document.getElementById('tx-image-file').value = '';
         }
 
         function evaluarVencimiento(fechaLimite, estado) {
             if (estado !== 'Pendiente') return `<span class="badge liquidada">Liquidada</span>`;
-            var limite = new Date(fechaLimite + "T23:59:59"), hoy = new Date();
-            limite.setHours(0,0,0,0); hoy.setHours(0,0,0,0);
+            var limite = new Date(fechaLimite + "T23:59:59"), hoy = new Date(); limite.setHours(0,0,0,0); hoy.setHours(0,0,0,0);
             return hoy > limite ? `<span class="badge vencido">Vencida</span>` : `<span class="badge pendiente">Pendiente</span>`;
         }
-
         function crearCXP() {
-            var p = document.getElementById('cxp-prov').value.trim(), a = parseFloat(document.getElementById('cxp-amount').value) || 0, c = document.getElementById('cxp-currency').value, d = document.getElementById('cxp-date').value; if (!p || a <= 0 || !d) return alert("Ingrese datos y fecha válidos.");
+            var p = document.getElementById('cxp-prov').value.trim(), a = parseFloat(document.getElementById('cxp-amount').value) || 0, c = document.getElementById('cxp-currency').value, d = document.getElementById('cxp-date').value; if (!p || a <= 0 || !d) return alert("Ingrese datos y fecha.");
             dbCXP.push({ id: Date.now(), prov: p, amount: a, currency: c, date: d, status: 'Pendiente' }); saveAll(); renderCXP(); document.getElementById('cxp-prov').value = ''; document.getElementById('cxp-amount').value = '0'; document.getElementById('cxp-date').value = '';
         }
+
         function renderCXP() {
             var tbody = document.querySelector('#cxp-table tbody'), html = '';
             dbCXP.forEach(item => {
                 var selectCuentas = `<select id="pay-select-${item.id}">` + dbCuentas.filter(a => a.currency === item.currency).map(a => `<option value="${a.id}">${a.name}</option>`).join('') + `</select>`;
                 var btn = item.status === 'Pendiente' ? `<button style="background:var(--danger);color:white;" onclick="pagarCXP(${item.id})">Liquidar</button>` : 'Cancelada';
-                var alerta = evaluarVencimiento(item.date, item.status);
-                html += `<tr><td>${item.prov}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td>${item.date}</td><td>${alerta}</td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
-            }); tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No hay cuentas por pagar pendientes.</td></tr>';
+                html += `<tr><td>${item.prov}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td>${item.date}</td><td>${evaluarVencimiento(item.date, item.status)}</td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
+            }); tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No hay cuentas por pagar.</td></tr>';
         }
 
         function pagarCXP(id) {
-            var item = dbCXP.find(x => x.id === id), idAcc = parseInt(document.getElementById('pay-select-' + id).value); if (!idAcc) return alert("Cree una cuenta para esta divisa primero.");
-            var cuenta = dbCuentas.find(a => a.id === idAcc); if (cuenta.current < item.amount && !confirm("Falta saldo. ¿Forzar el egreso de la cuenta?")) return;
-            cuenta.current -= item.amount; item.status = 'Cancelada'; dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Egreso', desc: 'Pago Pasivo: ' + item.prov, amount: item.amount });
+            var item = dbCXP.find(x => x.id === id), idAcc = parseInt(document.getElementById('pay-select-' + id).value); if (!idAcc) return alert("Cree una cuenta primero.");
+            var cuenta = dbCuentas.find(a => a.id === idAcc); if (cuenta.current < item.amount && !confirm("Falta saldo. ¿Forzar?")) return;
+            cuenta.current -= item.amount; item.status = 'Cancelada'; dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Egreso', reference: 'CXP-LIQ', desc: 'Pago Pasivo: ' + item.prov, amount: item.amount, imagen: null });
             saveAll(); inicializarTablasDashboard();
         }
 
         function crearCXC() {
-            var cl = document.getElementById('cxc-cli').value.trim(), a = parseFloat(document.getElementById('cxc-amount').value) || 0, c = document.getElementById('cxc-currency').value, d = document.getElementById('cxc-date').value; if (!cl || a <= 0 || !d) return alert("Ingrese datos y fecha válidos.");
+            var cl = document.getElementById('cxc-cli').value.trim(), a = parseFloat(document.getElementById('cxc-amount').value) || 0, c = document.getElementById('cxc-currency').value, d = document.getElementById('cxc-date').value; if (!cl || a <= 0 || !d) return alert("Ingrese datos y fecha.");
             dbCXC.push({ id: Date.now(), cli: cl, amount: a, currency: c, date: d, status: 'Pendiente' }); saveAll(); renderCXC(); document.getElementById('cxc-cli').value = ''; document.getElementById('cxc-amount').value = '0'; document.getElementById('cxc-date').value = '';
         }
 
@@ -336,40 +438,58 @@
             dbCXC.forEach(item => {
                 var selectCuentas = `<select id="collect-select-${item.id}">` + dbCuentas.filter(a => a.currency === item.currency).map(a => `<option value="${a.id}">${a.name}</option>`).join('') + `</select>`;
                 var btn = item.status === 'Pendiente' ? `<button style="background:var(--success);color:white;" onclick="cobrarCXC(${item.id})">Cobrar</button>` : 'Cobrada';
-                var alerta = evaluarVencimiento(item.date, item.status);
-                html += `<tr><td>${item.cli}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td>${item.date}</td><td>${alerta}</td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
-            }); tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No hay cuentas por cobrar pendientes.</td></tr>';
+                html += `<tr><td>${item.cli}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td>${item.date}</td><td>${evaluarVencimiento(item.date, item.status)}</td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
+            }); tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No hay cuentas por cobrar.</td></tr>';
         }
 
         function cobrarCXC(id) {
-            var item = dbCXC.find(x => x.id === id), idAcc = parseInt(document.getElementById('collect-select-' + id).value); if (!idAcc) return alert("Cree una cuenta para esta divisa primero.");
-            var cuenta = dbCuentas.find(a => a.id === idAcc); cuenta.current += item.amount; item.status = 'Cobrada'; dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Ingreso', desc: 'Cobro Activo: ' + item.cli, amount: item.amount });
+            var item = dbCXC.find(x => x.id === id), idAcc = parseInt(document.getElementById('collect-select-' + id).value); if (!idAcc) return alert("Cree una cuenta primero.");
+            var cuenta = dbCuentas.find(a => a.id === idAcc); cuenta.current += item.amount; item.status = 'Cobrada'; dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Ingreso', reference: 'CXC-COB', desc: 'Cobro Activo: ' + item.cli, amount: item.amount, imagen: null });
             saveAll(); inicializarTablasDashboard();
-        }
-        function dibujarGraficasCapital() {
-            var conUsd = document.getElementById('chart-usd-container'), conVes = document.getElementById('chart-ves-container');
-            var accountsUsd = dbCuentas.filter(a => a.currency === 'USD'), accountsVes = dbCuentas.filter(a => a.currency === 'VES');
-            var maxUsd = Math.max(...accountsUsd.map(a => a.current), 1), maxVes = Math.max(...accountsVes.map(a => a.current), 1);
-
-            conUsd.innerHTML = accountsUsd.map(a => `<div class="chart-bar" style="height: ${(a.current / maxUsd * 100)}%; background:var(--primary);"><span class="chart-bar-label">${a.current.toFixed(0)}</span><div style="position:absolute; bottom:-18px; font-size:9px; width:100%; text-align:center; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.name}</div></div>`).join('') || '<div style="color:var(--gray);font-size:12px;width:100%;text-align:center;">Sin cuentas USD</div>';
-            conVes.innerHTML = accountsVes.map(a => `<div class="chart-bar" style="height: ${(a.current / maxVes * 100)}%; background:var(--warning);"><span class="chart-bar-label">${a.current.toFixed(0)}</span><div style="position:absolute; bottom:-18px; font-size:9px; width:100%; text-align:center; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.name}</div></div>`).join('') || '<div style="color:var(--gray);font-size:12px;width:100%;text-align:center;">Sin cuentas VES</div>';
         }
 
         function actualizarTablaCuentas() {
             var tbody = document.querySelector('#accounts-table tbody');
-            tbody.innerHTML = dbCuentas.map(c => `<tr><td><strong>${c.name}</strong></td><td><span class="badge admin">${c.currency}</span></td><td style="font-weight:bold; color:${c.current >= 0 ? 'var(--success)':'var(--danger)'};">${c.current.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;">No hay cuentas registradas.</td></tr>';
+            tbody.innerHTML = dbCuentas.map(c => {
+                var equiv = '';
+                if(c.currency === 'USD') equiv = `<br><span style="font-size:11px; color:var(--gray);">BCV: ${(c.current * bcvRate).toFixed(2)} VES</span>`;
+                if(c.currency === 'EUR') equiv = `<br><span style="font-size:11px; color:var(--gray);">BCV: ${(c.current * bcvEur).toFixed(2)} VES</span>`;
+                if(c.currency === 'USDT') equiv = `<br><span style="font-size:11px; color:var(--gray);">Paralelo: ${(c.current * bcvUsdt).toFixed(2)} VES</span>`;
+                if(c.currency === 'VES') equiv = `<br><span style="font-size:11px; color:var(--gray);">BCV: ${(bcvRate > 0 ? c.current / bcvRate : 0).toFixed(2)} USD</span>`;
+                return `<tr><td><strong>${c.name}</strong></td><td><span class="badge admin">${c.currency}</span></td><td style="font-weight:bold; color:${c.current >= 0 ? 'var(--success)':'var(--danger)'};">${c.current.toFixed(2)} ${c.currency}${equiv}</td></tr>`;
+            }).join('') || '<tr><td colspan="3" style="text-align:center;">No hay cuentas registradas.</td></tr>';
         }
 
         function actualizarDesplegableCuentas() { var binds = document.querySelectorAll('.acc-select-bind'), html = dbCuentas.map(c => `<option value="${c.id}">${c.name} (${c.currency})</option>`).join(''); binds.forEach(sel => sel.innerHTML = html); }
+        function dibujarGraficasCapital() {
+            var keys = ['USD', 'EUR', 'USDT', 'VES'], colors = ['var(--primary)', 'var(--supervisor)', 'var(--cajero)', 'var(--warning)'];
+            keys.forEach((m, idx) => {
+                var con = document.getElementById('chart-' + m.toLowerCase() + '-container');
+                var accs = dbCuentas.filter(a => a.currency === m), max = Math.max(...accs.map(a => a.current), 1);
+                con.innerHTML = accs.map(a => `<div class="chart-bar" style="height: ${(a.current / max * 100)}%; background:${colors[idx]};"><span class="chart-bar-label">${a.current.toFixed(0)}</span><div style="position:absolute; bottom:-18px; font-size:9px; width:100%; text-align:center; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.name}</div></div>`).join('') || '<div style="color:var(--gray);font-size:11px;width:100%;text-align:center;">Sin fondos</div>';
+            });
+        }
+
+        function abrirVisorRecibo(index) {
+            var t = dbTransacciones[index];
+            var container = document.getElementById('modal-img-container');
+            if (t && t.imagen) {
+                container.innerHTML = `<img src="${t.imagen}" alt="Comprobante Bancario">`;
+                document.getElementById('receipt-modal').classList.remove('hidden');
+            } else { alert("Esta transacción no posee ninguna captura o recibo adjunto."); }
+        }
+        function cerrarVisorRecibo() { document.getElementById('receipt-modal').classList.add('hidden'); }
 
         function actualizarResumenCapital() {
             var con = document.getElementById('capital-container'); con.innerHTML = '';
-            ['USD', 'EUR', 'VES'].forEach(m => {
+            ['USD', 'EUR', 'USDT', 'VES'].forEach(m => {
                 var fil = dbCuentas.filter(a => a.currency === m); if (fil.length === 0) return; var cap = fil.reduce((s, a) => s + a.current, 0);
-                var ing = dbTransacciones.filter(t => t.currency === m && t.type === 'Ingreso').reduce((s, t) => s + t.amount, 0); var egr = dbTransacciones.filter(t => t.currency === m && t.type === 'Egreso').reduce((s, t) => s + t.amount, 0); var extra = '';
-                if(m === 'USD') extra = `<br><small style="color:var(--gray);font-weight:normal;">Equiv. BCV: ${(cap * bcvRate).toFixed(2)} VES</small>`;
-                if(m === 'VES') extra = `<br><small style="color:var(--gray);font-weight:normal;">Equiv. BCV: ${(bcvRate > 0 ? cap / bcvRate : 0).toFixed(2)} USD</small>`;
-                con.innerHTML += `<div style="margin-bottom:10px;"><h5>Moneda: ${m}</h5><div class='capital-grid'><div class='cap-box'><span>Capital</span><p>${cap.toFixed(2)} ${m}${extra}</p></div><div class='cap-box ingresos'><span>Ingresos</span><p>+${ing.toFixed(2)}</p></div><div class='cap-box egresos'><span>Egresos</span><p>-${egr.toFixed(2)}</p></div></div></div>`;
+                var ing = dbTransacciones.filter(t => t.currency === m && t.type === 'Ingreso').reduce((s, t) => s + t.amount, 0); var egr = dbTransacciones.filter(t => t.currency === m && t.type === 'Egreso').reduce((s, t) => s + t.amount, 0); var exCap = '', exIng = '', exEg = '';
+                if(m === 'USD') { exCap = `BCV: ${(cap * bcvRate).toFixed(2)} VES`; exIng = `Bs: ${(ing * bcvRate).toFixed(2)}`; exEg = `Bs: ${(egr * bcvRate).toFixed(2)}`; }
+                if(m === 'EUR') { exCap = `BCV: ${(cap * bcvEur).toFixed(2)} VES`; exIng = `Bs: ${(ing * bcvEur).toFixed(2)}`; exEg = `Bs: ${(egr * bcvEur).toFixed(2)}`; }
+                if(m === 'USDT') { exCap = `Paralelo: ${(cap * bcvUsdt).toFixed(2)} VES`; exIng = `Bs: ${(ing * bcvUsdt).toFixed(2)}`; exEg = `Bs: ${(egr * bcvUsdt).toFixed(2)}`; }
+                if(m === 'VES') { exCap = `BCV: ${(bcvRate > 0 ? cap / bcvRate : 0).toFixed(2)} USD`; exIng = `$: ${(bcvRate > 0 ? ing / bcvRate : 0).toFixed(2)}`; exEg = `$: ${(bcvRate > 0 ? egr / bcvRate : 0).toFixed(2)}`; }
+                con.innerHTML += `<div style="margin-bottom:10px;"><h5>Moneda: ${m}</h5><div class='capital-grid'><div class='cap-box'><span>Capital</span><p>${cap.toFixed(2)} ${m}<br><small style="color:var(--gray);font-weight:normal;">${exCap}</small></p></div><div class='cap-box ingresos'><span>Ingresos</span><p>+${ing.toFixed(2)}<br><small style="color:var(--gray);font-weight:normal;">${exIng}</small></p></div><div class='cap-box egresos'><span>Egresos</span><p>-${egr.toFixed(2)}<br><small style="color:var(--gray);font-weight:normal;">${exEg}</small></p></div></div></div>`;
             });
         }
 
@@ -377,16 +497,30 @@
         
         function actualizarTablaReportes() {
             var tbody = document.querySelector('#reports-table tbody'), ahora = new Date();
-            var fil = dbTransacciones.filter(t => { var d = Math.ceil(Math.abs(ahora - new Date(t.date)) / 86400000); return filtroTiempoActual === 'semanal' ? d <= 7 : filtroTiempoActual === 'quincenal' ? d <= 15 : filtroTiempoActual === 'mensual' ? d <= 30 : true; }).sort((a, b) => new Date(b.date) - new Date(a.date));
-            tbody.innerHTML = fil.map(t => `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.accountName}</td><td style="color:${t.type==='Ingreso'?'var(--success)':'var(--danger)'}; font-weight:bold;">${t.type}</td><td>${t.desc}</td><td style="font-weight:bold;">${t.type==='Ingreso'?'+':'-'}${t.amount.toFixed(2)} ${t.currency}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;">Sin movimientos.</td></tr>';
+            var query = document.getElementById('report-search-input') ? document.getElementById('report-search-input').value.toLowerCase().trim() : '';
+            
+            // Inversión del índice para poder mapear las imágenes correspondientes en el arreglo original
+            var tConIndice = dbTransacciones.map((t, idx) => ({ ...t, originalIndex: idx }));
+
+            var fil = tConIndice.filter(t => { 
+                var d = Math.ceil(Math.abs(ahora - new Date(t.date)) / 86400000); 
+                var matchTiempo = filtroTiempoActual === 'semanal' ? d <= 7 : filtroTiempoActual === 'quincenal' ? d <= 15 : filtroTiempoActual === 'mensual' ? d <= 30 : true;
+                var matchTexto = t.desc.toLowerCase().includes(query) || t.accountName.toLowerCase().includes(query) || (t.reference && t.reference.toLowerCase().includes(query));
+                return matchTiempo && matchTexto;
+            }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            tbody.innerHTML = fil.map(t => {
+                var btnRecibo = t.imagen ? `<button style="background:var(--supervisor); color:white; padding:3px 8px;" onclick="abrirVisorRecibo(${t.originalIndex})">👁️ Ver</button>` : `<span style="color:var(--gray);">S/A</span>`;
+                return `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.accountName}</td><td style="color:${t.type==='Ingreso'?'var(--success)':'var(--danger)'}; font-weight:bold;">${t.type}</td><td style="font-weight:bold; color:var(--primary);">${t.reference || 'S/R'}</td><td>${btnRecibo}</td><td>${t.desc}</td><td style="font-weight:bold;">${t.type==='Ingreso'?'+':'-'}${t.amount.toFixed(2)} ${t.currency}</td></tr>`;
+            }).join('') || '<tr><td colspan="7" style="text-align:center;">Sin movimientos encontrados.</td></tr>';
         }
 
         function descargarReporteExcel() {
             if (dbTransacciones.length === 0) return alert("No hay transacciones.");
-            var csv = "\uFEFFFecha,Cuenta,Tipo,Descripcion,Monto,Moneda\n"; dbTransacciones.forEach(t => { csv += `"${new Date(t.date).toLocaleDateString()}","${t.accountName}","${t.type}","${t.desc}",${t.amount},"${t.currency}"\n`; });
+            var csv = "\uFEFFFecha,Cuenta,Tipo,Referencia,Descripcion,Monto,Moneda\n"; dbTransacciones.forEach(t => { csv += `"${new Date(t.date).toLocaleDateString()}","${t.accountName}","${t.type}","${t.reference || 'S/R'}","${t.desc}",${t.amount},"${t.currency}"\n`; });
             var b = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), link = document.createElement("a"); link.href = URL.createObjectURL(b); link.setAttribute("download", "reporte_financiero.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
-        function saveAll() { localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); localStorage.setItem('cuentas', JSON.stringify(dbCuentas)); localStorage.setItem('transacciones', JSON.stringify(dbTransacciones)); localStorage.setItem('cxp', JSON.stringify(dbCXP)); localStorage.setItem('cxc', JSON.stringify(dbCXC)); }
+        function saveAll() { localStorage.setItem('cuentas', JSON.stringify(dbCuentas)); localStorage.setItem('transacciones', JSON.stringify(dbTransacciones)); localStorage.setItem('cxp', JSON.stringify(dbCXP)); localStorage.setItem('cxc', JSON.stringify(dbCXC)); }
     </script>
 </body>
 </html>
