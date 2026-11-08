@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Financiero Multimoneda</title>
+    <title>Sistema Financiero Multimoneda con Control de Usuarios</title>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --dark: #1e293b; --light: #f8fafc; --gray: #64748b; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
@@ -18,19 +18,19 @@
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
         .btn-block { width: 100%; background: var(--primary); color: white; margin-top: 10px; }
         .auth-links { text-align: center; margin-top: 15px; }
-        .auth-links a { color: var(--primary); text-decoration: none; font-size: 13px; }
+        .auth-links a { color: var(--primary); text-decoration: none; font-size: 13px; margin: 0 5px; }
         header { background: var(--dark); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         header button { background: var(--danger); color: white; }
-        .main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
-        @media(max-width: 768px) { .main-layout { grid-template-columns: 1fr; } }
+        .main-layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        @media(max-width: 992px) { .main-layout { grid-template-columns: 1fr; } }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card h3 { margin-bottom: 15px; font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
-        .capital-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .cap-box { background: var(--light); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .capital-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .cap-box { background: var(--light); padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary); }
         .cap-box.ingresos { border-left-color: var(--success); }
         .cap-box.egresos { border-left-color: var(--danger); }
-        .cap-box span { font-size: 12px; color: var(--gray); text-transform: uppercase; }
-        .cap-box p { font-size: 18px; font-weight: bold; margin-top: 5px; }
+        .cap-box span { font-size: 11px; color: var(--gray); text-transform: uppercase; }
+        .cap-box p { font-size: 16px; font-weight: bold; margin-top: 5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background: var(--light); color: var(--gray); }
@@ -39,6 +39,8 @@
         .report-filters { display: flex; gap: 10px; margin-bottom: 15px; }
         .report-filters button { background: #e2e8f0; color: var(--dark); }
         .report-filters button.active { background: var(--primary); color: white; }
+        .badge { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge.admin { background: #fef08a; color: #854d0e; }
     </style>
 </head>
 <body>
@@ -47,20 +49,14 @@
     <div id="auth-section">
         <div id="login-box" class="auth-container">
             <h2>Iniciar Sesión</h2>
-            <div class="form-group">
-                <label>Usuario</label>
-                <input type="text" id="login-user" value="admin">
-            </div>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <input type="password" id="login-pass" value="1234">
-            </div>
+            <div class="form-group"><label>Usuario</label><input type="text" id="login-user" value="admin"></div>
+            <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" value="1234"></div>
             <button class="btn-block" onclick="login()">Ingresar</button>
             <div class="auth-links"><a href="#" onclick="switchAuth('recovery')">¿Olvidaste tu contraseña?</a></div>
         </div>
         <div id="recovery-box" class="auth-container hidden">
             <h2>Recuperar Clave</h2>
-            <p style="font-size: 13px; color: var(--gray); margin-bottom: 15px; text-align: center;">Introduce tu usuario para recordar la clave.</p>
+            <p style="font-size: 13px; color: var(--gray); margin-bottom: 15px; text-align: center;">Introduce tu usuario registrado para recordar la clave.</p>
             <div class="form-group"><label>Usuario</label><input type="text" id="rec-user" placeholder="admin"></div>
             <button class="btn-block" onclick="recoverPassword()">Mostrar Contraseña</button>
             <div class="auth-links"><a href="#" onclick="switchAuth('login')">Volver al Login</a></div>
@@ -70,11 +66,32 @@
     <!-- DASHBOARD -->
     <div id="dashboard-section" class="hidden">
         <header>
-            <h2>Finanzas Pro v1.0</h2>
-            <div><span id="user-display" style="margin-right: 15px; font-weight: bold;"></span><button onclick="logout()">Cerrar Sesión</button></div>
+            <h2>Finanzas Pro v2.0</h2>
+            <div>
+                <span id="user-display" style="margin-right: 15px; font-weight: bold;"></span>
+                <button onclick="logout()">Cerrar Sesión</button>
+            </div>
         </header>
         <div class="main-layout">
+            <!-- PANEL LATERAL DE OPERACIONES -->
             <div class="sidebar">
+                <!-- Gestión de Usuarios (Sólo Admin) -->
+                <div class="card" id="admin-card">
+                    <h3>Panel de Usuarios (Admin)</h3>
+                    <div class="form-group"><label>Nuevo Usuario</label><input type="text" id="new-username" placeholder="Ej. Pedro"></div>
+                    <div class="form-group"><label>Contraseña</label><input type="password" id="new-password" placeholder="Clave"></div>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select id="new-role"><option value="estandar">Estándar</option><option value="admin">Administrador</option></select>
+                    </div>
+                    <button class="btn-block" style="background: var(--primary);" onclick="createUser()">+ Guardar Usuario</button>
+                    <table id="users-table" style="margin-top:15px; font-size:12px;">
+                        <thead><tr><th>User</th><th>Rol</th><th>Acción</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Crear Cuenta -->
                 <div class="card">
                     <h3>Nueva Cuenta</h3>
                     <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Efectivo USD"></div>
@@ -85,9 +102,11 @@
                     <div class="form-group"><label>Monto Inicial</label><input type="number" id="acc-balance" value="0" step="0.01"></div>
                     <button class="btn-block" style="background: var(--dark);" onclick="createAccount()">+ Guardar Cuenta</button>
                 </div>
+
+                <!-- Movimiento -->
                 <div class="card">
                     <h3>Movimiento</h3>
-                    <div class="form-group"><label>Cuenta</label><select id="tx-account"></select></div>
+                    <div class="form-group"><label>Cuenta Origen</label><select id="tx-account"></select></div>
                     <div class="form-group"><label>Monto</label><input type="number" id="tx-amount" value="0" step="0.01"></div>
                     <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Alquiler"></div>
                     <div style="display: flex; gap: 10px;">
@@ -96,6 +115,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- MONITOREO Y REPORTES -->
             <div class="content">
                 <div class="card"><h3>Capital Global</h3><div id="capital-container"></div></div>
                 <div class="card"><h3>Mis Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
@@ -113,44 +134,19 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT -->
+    <!-- JAVASCRIPT TOTALMENTE OPERATIVO -->
     <script>
-        const USER_DB = { user: "admin", pass: "1234" };
+        // Inicializar Base de Datos de Usuarios en LocalStorage
+        if (!localStorage.getItem('usuarios')) {
+            const defaultUsers = [{ user: "admin", pass: "1234", role: "admin" }];
+            localStorage.setItem('usuarios', JSON.stringify(defaultUsers));
+        }
+
+        let users = JSON.parse(localStorage.getItem('usuarios'));
         let accounts = JSON.parse(localStorage.getItem('cuentas')) || [];
         let transactions = JSON.parse(localStorage.getItem('transacciones')) || [];
+        let currentUser = null;
         let currentFilter = 'todos';
 
         function login() {
-            const u = document.getElementById('login-user').value;
-            const p = document.getElementById('login-pass').value;
-            if(u === USER_DB.user && p === USER_DB.pass) {
-                document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                document.getElementById('user-display').innerText = `Hola, ${u}`;
-                initSystem();
-            } else { alert("Usuario o clave incorrectos."); }
-        }
-        function logout() {
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
-        }
-        function switchAuth(view) {
-            if(view === 'recovery') {
-                document.getElementById('login-box').classList.add('hidden');
-                document.getElementById('recovery-box').classList.remove('hidden');
-            } else {
-                document.getElementById('recovery-box').classList.add('hidden');
-                document.getElementById('login-box').classList.remove('hidden');
-            }
-        }
-        function recoverPassword() {
-            const user = document.getElementById('rec-user').value;
-            if(user === USER_DB.user) { alert(`Tu contraseña es: ${USER_DB.pass}`); }
-            else { alert("Usuario no encontrado."); }
-        }
-        function initSystem() { renderAccounts(); renderCapital(); updateAccountSelect(); renderReports(); }
-        
-        function createAccount() {
-            const name = document.getElementById('acc-name').value.trim();
-            const currency = document.getElementById('acc-currency').value;
-            const balance = parseFloat(document.getElementById('acc-balance').value) || 0;
+            const u = document.getElementById('login-user').value.trim();
