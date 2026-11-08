@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Financiero Corporativo Pro v6.0</title>
+    <title>Sistema Financiero Corporativo Pro v6.5</title>
     <style>
         :root { 
             --primary: #2563eb; 
@@ -27,13 +27,12 @@
         .form-group label { display: block; margin-bottom: 4px; font-size: 13px; font-weight: bold; }
         .form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-size: 14px; }
         .btn-block { width: 100%; background: var(--primary); color: white; margin-top: 10px; padding: 10px; font-size: 14px; }
-        header { background: var(--dark); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        header { background: var(--dark); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 20px; max-width: 1600px; margin: 0 auto; }
         @media(max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card h3 { margin-bottom: 15px; font-size: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: var(--primary); }
         
-        /* ESTILOS DE LA VENTANA EMERGENTE PARA MOSTRAR FOTOS */
         .modal-recibo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .modal-content-recibo { background: white; padding: 20px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center; position: relative; }
         .modal-content-recibo img { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 6px; margin-top: 10px; }
@@ -94,7 +93,15 @@
                 </div>
                 <h2>Bienvenido al sistema control financiero</h2>
             </div>
-            <div><span id="user-display" style="margin-right:15px; font-weight:bold;"></span><button onclick="ejecutarLogout()">Cerrar Sesión</button></div>
+            <!-- CONTROLES DE SEGURIDAD Y PERFIL: CAMBIO DE CLAVE INTEGRADO -->
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <span id="user-display" style="font-weight:bold;"></span>
+                <div style="display: flex; gap: 5px; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px;">
+                    <input type="password" id="current-user-new-pass" placeholder="Nueva clave" style="padding: 4px 8px; border-radius: 4px; border: none; outline: none; font-size: 12px; width: 110px;">
+                    <button style="background: var(--success); color: white; padding: 4px 8px; font-size: 11px;" onclick="cambiarClaveSesionActiva()">Actualizar Clave</button>
+                </div>
+                <button onclick="ejecutarLogout()" style="background:var(--danger); color:white; padding: 6px 12px;">Cerrar Sesión</button>
+            </div>
         </header>
 
         <div class="main-layout">
@@ -105,6 +112,7 @@
                     <div class="form-group"><label>Tasa EUR BCV (Bs)</label><input type="number" id="bcv-eur-input" value="51.20" step="0.01" onchange="actualizarTasasMúltiples()"></div>
                     <div class="form-group"><label>Tasa USDT (Bs)</label><input type="number" id="bcv-usdt-input" value="56.80" step="0.01" onchange="actualizarTasasMúltiples()"></div>
                 </div>
+
                 <div class="card" id="admin-card">
                     <h3>Gestión de Usuarios (Admin)</h3>
                     <div class="form-group"><label>Usuario</label><input type="text" id="new-username"></div>
@@ -129,10 +137,11 @@
                         <input type="file" id="backup-file-input" accept=".txt" style="font-size:11px; padding:4px;" onchange="importarRespaldoSistema(event)">
                     </div>
                 </div>
+
                 <div class="card" id="form-cuenta-card">
                     <h3>Nueva Cuenta Bancaria / Wallet</h3>
                     <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Banesco o Binance"></div>
-                    <div class="form-group"><label>Moneda / Activo</label><select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="USDT">USDT (Transit)</option><option value="VES">VES (Bs.)</option></select></div>
+                    <div class="form-group"><label>Moneda / Activo</label><select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="USDT">USDT (₮)</option><option value="VES">VES (Bs.)</option></select></div>
                     <div class="form-group"><label>Monto Inicial</label><input type="number" id="acc-balance" value="0" step="0.01"></div>
                     <button class="btn-block" style="background:var(--dark); color:white;" onclick="crearCuenta()">+ Guardar Cuenta</button>
                 </div>
@@ -144,7 +153,6 @@
                     <div class="form-group"><label>Monto</label><input type="number" id="tx-amount" value="0" step="0.01"></div>
                     <div class="form-group"><label>Nro. Referencia Bancaria</label><input type="text" id="tx-reference" placeholder="Ej. 10293848 (Opcional)"></div>
                     
-                    <!-- CASILLA DE ADJUNTO PARA COMPROBANTE/RECIBO BANCARIO INCORPORADA -->
                     <div class="form-group">
                         <label>Foto / Captura del Recibo</label>
                         <input type="file" id="tx-image-file" accept="image/*" style="font-size:12px; padding:4px;">
@@ -154,6 +162,7 @@
                     <button class="btn-block" style="background:var(--primary); color:white;" onclick="procesarMovimientoDesplegable()">Ejecutar Operación</button>
                 </div>
             </div>
+
             <div class="content">
                 <div class="card" style="background: linear-gradient(135deg, #eff6ff, #ffffff); border: 1px solid #bfdbfe;">
                     <h3>Calculadora de Reconversión USD ⇄ VES (Tasa BCV)</h3>
@@ -174,6 +183,7 @@
                         <div><div class="chart-bar-container" id="chart-ves-container"></div><div class="chart-bar-title">Fondos VES (Bs.)</div></div>
                     </div>
                 </div>
+
                 <div class="card"><h3>Capital Neto Separado y Consolidado</h3><div id="capital-container"></div></div>
                 <div class="card"><h3>Mis Cuentas Activas (Saldos Disponibles con Equivalencias)</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
 
@@ -189,6 +199,7 @@
                     </div>
                     <table id="cxp-table"><thead><tr><th>Proveedor</th><th>Monto</th><th>Moneda</th><th>Vence</th><th>Estado</th><th>Pagar Desde</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
+
                 <!-- ACTIVOS: CUENTAS POR COBRAR -->
                 <div class="card" id="cxc-card-panel">
                     <h3>Cuentas Pendientes por Cobrar (Activos con Alerta de Vencimiento)</h3>
@@ -202,7 +213,6 @@
                     <table id="cxc-table"><thead><tr><th>Cliente</th><th>Monto</th><th>Moneda</th><th>Vence</th><th>Estado</th><th>Recibir En</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
 
-                <!-- HISTORIAL COMPLETO CON COLUMNA DE RECIBO -->
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                         <h3 style="border: none; margin: 0;">Historial y Auditoría Temporal de Movimientos</h3>
@@ -219,7 +229,6 @@
         </div>
     </div>
 
-    <!-- VENTANA EMERGENTE (MODAL) PARA EL VISOR DE FOTOS -->
     <div id="receipt-modal" class="modal-recibo hidden">
         <div class="modal-content-recibo">
             <span class="close-modal" onclick="cerrarVisorRecibo()">&times;</span>
@@ -227,6 +236,7 @@
             <div id="modal-img-container"></div>
         </div>
     </div>
+
     <script>
         if (!localStorage.getItem('usuarios')) { localStorage.setItem('usuarios', JSON.stringify([{ user: "admin", pass: "1234", role: "admin" }])); }
         if (!localStorage.getItem('cuentas')) { localStorage.setItem('cuentas', JSON.stringify()); }
@@ -260,9 +270,11 @@
                 document.getElementById('bcv-rate-input').value = bcvRate;
                 document.getElementById('bcv-eur-input').value = bcvEur;
                 document.getElementById('bcv-usdt-input').value = bcvUsdt;
+                document.getElementById('current-user-new-pass').value = '';
                 establecerPermisosPorRol(); inicializarTablasDashboard(); calcularDesdeBase('USD');
             } else { alert("Usuario o clave incorrectos."); }
         }
+
         function establecerPermisosPorRol() {
             var r = usuarioActivo.role;
             document.getElementById('admin-card').classList.add('hidden');
@@ -299,6 +311,21 @@
         function ejecutarLogout() { usuarioActivo = null; document.getElementById('dashboard-section').classList.add('hidden'); document.getElementById('auth-section').classList.remove('hidden'); }
         function cambiarVistaAuth(v) { if (v === 'recovery') { document.getElementById('login-box').classList.add('hidden'); document.getElementById('recovery-box').classList.remove('hidden'); } else { document.getElementById('recovery-box').classList.add('hidden'); document.getElementById('login-box').classList.remove('hidden'); } }
         function ejecutarRecuperacion() { var b = document.getElementById('rec-user').value.trim(), enc = null; for (var i = 0; i < dbUsuarios.length; i++) { if (dbUsuarios[i].user === b) { enc = dbUsuarios[i]; break; } } if (enc !== null) { alert("La contraseña es: " + enc.pass); } else { alert("El usuario no existe."); } }
+        // FUNCIÓN AGREGADA DE SEGURIDAD PARA ACTUALIZAR CONTRASEÑA EN TIEMPO REAL
+        function cambiarClaveSesionActiva() {
+            var nuevaClave = document.getElementById('current-user-new-pass').value.trim();
+            if (!nuevaClave || nuevaClave.length < 3) return alert("La contraseña debe tener un mínimo de 3 caracteres.");
+            
+            // Buscar y actualizar en la base de datos de usuarios
+            var uEncontrado = dbUsuarios.find(u => u.user === usuarioActivo.user);
+            if (uEncontrado) {
+                uEncontrado.pass = nuevaClave;
+                localStorage.setItem('usuarios', JSON.stringify(dbUsuarios));
+                alert("¡Contraseña actualizada con éxito! Por seguridad de su perfil, debe volver a iniciar sesión.");
+                ejecutarLogout();
+            } else { alert("Error crítico al validar la sesión activa."); }
+        }
+
         function actualizarListaUsuarios() {
             var tbody = document.querySelector('#users-table tbody'), filas = '';
             for (var i = 0; i < dbUsuarios.length; i++) {
@@ -317,30 +344,13 @@
         function inicializarTablasDashboard() { actualizarTablaCuentas(); actualizarResumenCapital(); actualizarDesplegableCuentas(); actualizarTablaReportes(); renderCXP(); renderCXC(); dibujarGraficasCapital(); }
 
         function exportarRespaldoSistema() {
-            var backupData = {
-                usuarios: dbUsuarios, cuentas: dbCuentas, transacciones: dbTransacciones, cxp: dbCXP, cxc: dbCXC,
-                rate_usd: bcvRate, rate_eur: bcvEur, rate_usdt: bcvUsdt
-            };
-            var b = new Blob([JSON.stringify(backupData)], { type: 'text/plain;charset=utf-8;' }), link = document.createElement("a");
-            link.href = URL.createObjectURL(b); link.setAttribute("download", "respaldo_financiero_total.txt");
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            var backupData = { usuarios: dbUsuarios, cuentas: dbCuentas, transacciones: dbTransacciones, cxp: dbCXP, cxc: dbCXC, rate_usd: bcvRate, rate_eur: bcvEur, rate_usdt: bcvUsdt };
+            var b = new Blob([JSON.stringify(backupData)], { type: 'text/plain;charset=utf-8;' }), link = document.createElement("a"); link.href = URL.createObjectURL(b); link.setAttribute("download", "respaldo_financiero_total.txt"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+        function importarRespaldoSistema(event) {
+            var file = event.target.files; if (!file || !file[0]) return; var reader = new FileReader(); reader.onload = function(e) { try { var data = JSON.parse(e.target.result); if(data.usuarios && data.cuentas && data.transacciones) { dbUsuarios = data.usuarios; dbCuentas = data.cuentas; dbTransacciones = data.transacciones; dbCXP = data.cxp || []; dbCXC = data.cxc || []; bcvRate = data.rate_usd || 48.50; bcvEur = data.rate_eur || 51.20; bcvUsdt = data.rate_usdt || 56.80; saveAll(); localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); localStorage.setItem('bcv_rate', bcvRate.toFixed(2)); localStorage.setItem('bcv_eur', bcvEur.toFixed(2)); localStorage.setItem('bcv_usdt', bcvUsdt.toFixed(2)); alert("¡Respaldo restaurado con éxito!"); location.reload(); } else { alert("Formato incorrecto."); } } catch(err) { alert("Error al procesar el archivo."); } }; reader.readAsText(file[0]);
         }
 
-        function importarRespaldoSistema(event) {
-            var file = event.target.files; if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    var data = JSON.parse(e.target.result);
-                    if(data.usuarios && data.cuentas && data.transacciones) {
-                        dbUsuarios = data.usuarios; dbCuentas = data.cuentas; dbTransacciones = data.transacciones;
-                        dbCXP = data.cxp ||; dbCXC = data.cxc ||; bcvRate = data.rate_usd || 48.50; bcvEur = data.rate_eur || 51.20; bcvUsdt = data.rate_usdt || 56.80;
-                        saveAll(); localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); localStorage.setItem('bcv_rate', bcvRate.toFixed(2)); localStorage.setItem('bcv_eur', bcvEur.toFixed(2)); localStorage.setItem('bcv_usdt', bcvUsdt.toFixed(2));
-                        alert("¡Respaldo restaurado con éxito!"); location.reload();
-                    } else { alert("Formato incorrecto."); }
-                } catch(err) { alert("Error al procesar el archivo."); }
-            }; reader.readAsText(file);
-        }
         function actualizarTasasMúltiples() {
             var u = parseFloat(document.getElementById('bcv-rate-input').value) || 1;
             var e = parseFloat(document.getElementById('bcv-eur-input').value) || 1;
@@ -369,6 +379,7 @@
             var n = document.getElementById('acc-name').value.trim(), m = document.getElementById('acc-currency').value, b = parseFloat(document.getElementById('acc-balance').value) || 0; if (!n) return alert("Indique un nombre.");
             dbCuentas.push({ id: Date.now(), name: n, currency: m, current: b }); saveAll(); inicializarTablasDashboard(); document.getElementById('acc-name').value = ''; document.getElementById('acc-balance').value = '0';
         }
+
         function procesarMovimientoDesplegable() {
             var tipo = document.getElementById('tx-type').value, id = parseInt(document.getElementById('tx-account').value), monto = parseFloat(document.getElementById('tx-amount').value) || 0;
             var ref = document.getElementById('tx-reference').value.trim() || 'S/R';
@@ -379,27 +390,18 @@
             var cuenta = dbCuentas.find(a => a.id === id);
             if (tipo === 'Egreso' && cuenta.current < monto) { if (!confirm("Fondos insuficientes. ¿Forzar?")) return; }
 
-            // Lógica para comprimir y empaquetar la captura de pantalla en Base64
             if (fileInput.files && fileInput.files[0]) {
                 var reader = new FileReader();
-                reader.onload = function(e) {
-                    guardarMovimientoCompleto(tipo, id, cuenta, monto, ref, desc, e.target.result);
-                };
+                reader.onload = function(e) { guardarMovimientoCompleto(tipo, id, cuenta, monto, ref, desc, e.target.result); };
                 reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                guardarMovimientoCompleto(tipo, id, cuenta, monto, ref, desc, null);
-            }
+            } else { guardarMovimientoCompleto(tipo, id, cuenta, monto, ref, desc, null); }
         }
 
         function guardarMovimientoCompleto(tipo, id, cuenta, monto, ref, desc, imagenBase64) {
             cuenta.current += (tipo === 'Ingreso' ? monto : -monto); 
-            dbTransacciones.push({ 
-                date: new Date().toISOString(), accountId: id, accountName: cuenta.name, 
-                currency: cuenta.currency, type: tipo, reference: ref, desc: desc, amount: monto, imagen: imagenBase64 
-            });
+            dbTransacciones.push({ date: new Date().toISOString(), accountId: id, accountName: cuenta.name, currency: cuenta.currency, type: tipo, reference: ref, desc: desc, amount: monto, imagen: imagenBase64 });
             saveAll(); inicializarTablasDashboard();
-            document.getElementById('tx-amount').value = '0'; document.getElementById('tx-reference').value = ''; 
-            document.getElementById('tx-desc').value = ''; document.getElementById('tx-image-file').value = '';
+            document.getElementById('tx-amount').value = '0'; document.getElementById('tx-reference').value = ''; document.getElementById('tx-desc').value = ''; document.getElementById('tx-image-file').value = '';
         }
 
         function evaluarVencimiento(fechaLimite, estado) {
@@ -407,6 +409,7 @@
             var limite = new Date(fechaLimite + "T23:59:59"), hoy = new Date(); limite.setHours(0,0,0,0); hoy.setHours(0,0,0,0);
             return hoy > limite ? `<span class="badge vencido">Vencida</span>` : `<span class="badge pendiente">Pendiente</span>`;
         }
+
         function crearCXP() {
             var p = document.getElementById('cxp-prov').value.trim(), a = parseFloat(document.getElementById('cxp-amount').value) || 0, c = document.getElementById('cxp-currency').value, d = document.getElementById('cxp-date').value; if (!p || a <= 0 || !d) return alert("Ingrese datos y fecha.");
             dbCXP.push({ id: Date.now(), prov: p, amount: a, currency: c, date: d, status: 'Pendiente' }); saveAll(); renderCXP(); document.getElementById('cxp-prov').value = ''; document.getElementById('cxp-amount').value = '0'; document.getElementById('cxp-date').value = '';
@@ -461,6 +464,7 @@
         }
 
         function actualizarDesplegableCuentas() { var binds = document.querySelectorAll('.acc-select-bind'), html = dbCuentas.map(c => `<option value="${c.id}">${c.name} (${c.currency})</option>`).join(''); binds.forEach(sel => sel.innerHTML = html); }
+
         function dibujarGraficasCapital() {
             var keys = ['USD', 'EUR', 'USDT', 'VES'], colors = ['var(--primary)', 'var(--supervisor)', 'var(--cajero)', 'var(--warning)'];
             keys.forEach((m, idx) => {
@@ -471,12 +475,8 @@
         }
 
         function abrirVisorRecibo(index) {
-            var t = dbTransacciones[index];
-            var container = document.getElementById('modal-img-container');
-            if (t && t.imagen) {
-                container.innerHTML = `<img src="${t.imagen}" alt="Comprobante Bancario">`;
-                document.getElementById('receipt-modal').classList.remove('hidden');
-            } else { alert("Esta transacción no posee ninguna captura o recibo adjunto."); }
+            var t = dbTransacciones[index]; var container = document.getElementById('modal-img-container');
+            if (t && t.imagen) { container.innerHTML = `<img src="${t.imagen}" alt="Comprobante Bancario">`; document.getElementById('receipt-modal').classList.remove('hidden'); } else { alert("Esta transacción no posee captura."); }
         }
         function cerrarVisorRecibo() { document.getElementById('receipt-modal').classList.add('hidden'); }
 
@@ -498,17 +498,13 @@
         function actualizarTablaReportes() {
             var tbody = document.querySelector('#reports-table tbody'), ahora = new Date();
             var query = document.getElementById('report-search-input') ? document.getElementById('report-search-input').value.toLowerCase().trim() : '';
-            
-            // Inversión del índice para poder mapear las imágenes correspondientes en el arreglo original
             var tConIndice = dbTransacciones.map((t, idx) => ({ ...t, originalIndex: idx }));
-
             var fil = tConIndice.filter(t => { 
                 var d = Math.ceil(Math.abs(ahora - new Date(t.date)) / 86400000); 
                 var matchTiempo = filtroTiempoActual === 'semanal' ? d <= 7 : filtroTiempoActual === 'quincenal' ? d <= 15 : filtroTiempoActual === 'mensual' ? d <= 30 : true;
                 var matchTexto = t.desc.toLowerCase().includes(query) || t.accountName.toLowerCase().includes(query) || (t.reference && t.reference.toLowerCase().includes(query));
                 return matchTiempo && matchTexto;
             }).sort((a, b) => new Date(b.date) - new Date(a.date));
-
             tbody.innerHTML = fil.map(t => {
                 var btnRecibo = t.imagen ? `<button style="background:var(--supervisor); color:white; padding:3px 8px;" onclick="abrirVisorRecibo(${t.originalIndex})">👁️ Ver</button>` : `<span style="color:var(--gray);">S/A</span>`;
                 return `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.accountName}</td><td style="color:${t.type==='Ingreso'?'var(--success)':'var(--danger)'}; font-weight:bold;">${t.type}</td><td style="font-weight:bold; color:var(--primary);">${t.reference || 'S/R'}</td><td>${btnRecibo}</td><td>${t.desc}</td><td style="font-weight:bold;">${t.type==='Ingreso'?'+':'-'}${t.amount.toFixed(2)} ${t.currency}</td></tr>`;
@@ -524,3 +520,9 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+
