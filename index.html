@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Control Financiero Avanzado</title>
+    <title>Sistema Control Financiero Pro v3.0</title>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --warning: #d97706; --dark: #1e293b; --light: #f8fafc; --gray: #64748b; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
@@ -39,7 +39,6 @@
     </style>
 </head>
 <body>
-    <!-- MÓDULO DE INICIO DE SESIÓN -->
     <div id="auth-section">
         <div id="login-box" class="auth-container">
             <div style="text-align: center; margin-bottom: 15px;">
@@ -59,7 +58,6 @@
             <p style="text-align:center; margin-top:15px;"><a href="#" onclick="cambiarVistaAuth('login')" style="font-size:13px; color:var(--primary); text-decoration:none;">Volver al Login</a></p>
         </div>
     </div>
-    <!-- DASHBOARD PRINCIPAL -->
     <div id="dashboard-section" class="hidden">
         <header>
             <div style="display: flex; align-items: center;">
@@ -72,7 +70,6 @@
         </header>
 
         <div class="main-layout">
-            <!-- BARRA LATERAL IZQUIERDA -->
             <div class="sidebar">
                 <div class="card" id="admin-card">
                     <h3>Gestión de Usuarios (Admin)</h3>
@@ -91,22 +88,19 @@
                     <button class="btn-block" style="background:var(--dark); color:white;" onclick="crearCuenta()">+ Guardar Cuenta</button>
                 </div>
 
-                <!-- MÓDULO DE MOVIMIENTOS REFORMADO CON DESPLEGABLE -->
                 <div class="card">
                     <h3>Registrar Movimiento / Transacción</h3>
                     <div class="form-group"><label>Tipo de Operación</label><select id="tx-type"><option value="Ingreso">↑ Ingreso (Suma al Capital)</option><option value="Egreso">↓ Egreso / Gasto (Resta del Capital)</option></select></div>
                     <div class="form-group"><label>Cuenta Seleccionada</label><select id="tx-account" class="acc-select-bind"></select></div>
                     <div class="form-group"><label>Monto</label><input type="number" id="tx-amount" value="0" step="0.01"></div>
-                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Concepto u origen"></div>
+                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Depósito"></div>
                     <button class="btn-block" style="background:var(--primary); color:white;" onclick="procesarMovimientoDesplegable()">Ejecutar Operación</button>
                 </div>
             </div>
-            <!-- CONTENIDO CENTRAL -->
             <div class="content">
                 <div class="card"><h3>Capital Neto e Historial por Divisa</h3><div id="capital-container"></div></div>
                 <div class="card"><h3>Mis Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
 
-                <!-- MÓDULO DE CUENTAS POR PAGAR -->
                 <div class="card">
                     <h3>Cuentas Pendientes por Pagar (Pasivos)</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
@@ -117,7 +111,6 @@
                     </div>
                     <table id="cxp-table"><thead><tr><th>Proveedor</th><th>Monto</th><th>Moneda</th><th>Estado</th><th>Pagar Desde</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
-                <!-- MÓDULO DE CUENTAS POR COBRAR -->
                 <div class="card">
                     <h3>Cuentas Pendientes por Cobrar (Activos)</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
@@ -129,9 +122,11 @@
                     <table id="cxc-table"><thead><tr><th>Cliente</th><th>Monto</th><th>Moneda</th><th>Estado</th><th>Recibir En</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
 
-                <!-- SECCIÓN DE REPORTES TEMPORALES -->
                 <div class="card">
-                    <h3>Reporte Semanal, Quincenal y Mensual de Movimientos</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px;">
+                        <h3 style="border: none; margin: 0;">Reporte Semanal, Quincenal y Mensual de Movimientos</h3>
+                        <button style="background: var(--success); color: white;" onclick="descargarReporteExcel()">🟢 Descargar Excel (.csv)</button>
+                    </div>
                     <div class="report-filters"><button id="btn-rep-all" class="active" onclick="filterReports('todos')">Todos</button><button id="btn-rep-w" onclick="filterReports('semanal')">Semanal</button><button id="btn-rep-f" onclick="filterReports('quincenal')">Quincenal</button><button id="btn-rep-m" onclick="filterReports('mensual')">Mensual</button></div>
                     <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
                 </div>
@@ -139,7 +134,6 @@
         </div>
     </div>
     <script>
-        // Verificación de almacenamiento local seguro
         if (!localStorage.getItem('usuarios')) { localStorage.setItem('usuarios', JSON.stringify([{ user: "admin", pass: "1234", role: "admin" }])); }
         if (!localStorage.getItem('cuentas')) { localStorage.setItem('cuentas', JSON.stringify()); }
         if (!localStorage.getItem('transacciones')) { localStorage.setItem('transacciones', JSON.stringify()); }
@@ -174,102 +168,56 @@
             } else { alert("Usuario o clave incorrectos."); }
         }
 
-        function ejecutarLogout() {
-            usuarioActivo = null;
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
-        }
-
-        function cambiarVistaAuth(vista) {
-            if (vista === 'recovery') {
-                document.getElementById('login-box').classList.add('hidden');
-                document.getElementById('recovery-box').classList.remove('hidden');
-            } else {
-                document.getElementById('recovery-box').classList.add('hidden');
-                document.getElementById('login-box').classList.remove('hidden');
-            }
-        }
-
+        function ejecutarLogout() { usuarioActivo = null; document.getElementById('dashboard-section').classList.add('hidden'); document.getElementById('auth-section').classList.remove('hidden'); }
+        function cambiarVistaAuth(v) { if (v === 'recovery') { document.getElementById('login-box').classList.add('hidden'); document.getElementById('recovery-box').classList.remove('hidden'); } else { document.getElementById('recovery-box').classList.add('hidden'); document.getElementById('login-box').classList.remove('hidden'); } }
+        
         function ejecutarRecuperacion() {
-            var b = document.getElementById('rec-user').value.trim();
-            var enc = null;
-            for (var i = 0; i < dbUsuarios.length; i++) {
-                if (dbUsuarios[i].user === b) { enc = dbUsuarios[i]; break; }
-            }
-            if (enc !== null) { alert("La contraseña es: " + enc.pass); }
-            else { alert("El usuario no existe."); }
+            var b = document.getElementById('rec-user').value.trim(), enc = null;
+            for (var i = 0; i < dbUsuarios.length; i++) { if (dbUsuarios[i].user === b) { enc = dbUsuarios[i]; break; } }
+            if (enc !== null) { alert("La contraseña es: " + enc.pass); } else { alert("El usuario no existe."); }
         }
 
         function actualizarListaUsuarios() {
             var tbody = document.querySelector('#users-table tbody'), filas = '';
             for (var i = 0; i < dbUsuarios.length; i++) {
-                var u = dbUsuarios[i];
-                var btn = u.user !== 'admin' ? "<button style='background:var(--danger);color:white;padding:2px 6px;font-size:10px;' onclick='eliminarUsuario(\""+u.user+"\")'>X</button>" : "-";
+                var u = dbUsuarios[i], btn = u.user !== 'admin' ? "<button style='background:var(--danger);color:white;padding:2px 6px;font-size:10px;' onclick='eliminarUsuario(\""+u.user+"\")'>X</button>" : "-";
                 filas += "<tr><td>" + u.user + "</td><td>" + u.role + "</td><td>" + btn + "</td></tr>";
             }
             tbody.innerHTML = filas;
         }
 
         function crearUsuario() {
-            var n = document.getElementById('new-username').value.trim();
-            var c = document.getElementById('new-password').value.trim();
-            var r = document.getElementById('new-role').value;
+            var n = document.getElementById('new-username').value.trim(), c = document.getElementById('new-password').value.trim(), r = document.getElementById('new-role').value;
             if (!n || !c) return alert("Campos vacíos.");
             for (var i = 0; i < dbUsuarios.length; i++) { if (dbUsuarios[i].user === n) return alert("Ya existe."); }
-            dbUsuarios.push({ user: n, pass: c, role: r });
-            localStorage.setItem('usuarios', JSON.stringify(dbUsuarios));
-            actualizarListaUsuarios();
-            document.getElementById('new-username').value = ''; document.getElementById('new-password').value = '';
+            dbUsuarios.push({ user: n, pass: c, role: r }); localStorage.setItem('usuarios', JSON.stringify(dbUsuarios));
+            actualizarListaUsuarios(); document.getElementById('new-username').value = ''; document.getElementById('new-password').value = '';
         }
 
-        function eliminarUsuario(nombre) {
-            dbUsuarios = dbUsuarios.filter(function(item) { return item.user !== nombre; });
-            localStorage.setItem('usuarios', JSON.stringify(dbUsuarios));
-            actualizarListaUsuarios();
-        }
-
-        function inicializarTablasDashboard() {
-            actualizarTablaCuentas();
-            actualizarResumenCapital();
-            actualizarDesplegableCuentas();
-            actualizarTablaReportes();
-            renderCXP();
-            renderCXC();
-        }
+        function eliminarUsuario(nombre) { dbUsuarios = dbUsuarios.filter(function(i) { return i.user !== nombre; }); localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); actualizarListaUsuarios(); }
+        function inicializarTablasDashboard() { actualizarTablaCuentas(); actualizarResumenCapital(); actualizarDesplegableCuentas(); actualizarTablaReportes(); renderCXP(); renderCXC(); }
+        
         function crearCuenta() {
-            var n = document.getElementById('acc-name').value.trim();
-            var m = document.getElementById('acc-currency').value;
-            var b = parseFloat(document.getElementById('acc-balance').value) || 0;
+            var n = document.getElementById('acc-name').value.trim(), m = document.getElementById('acc-currency').value, b = parseFloat(document.getElementById('acc-balance').value) || 0;
             if (!n) return alert("Indique un nombre.");
             dbCuentas.push({ id: Date.now(), name: n, currency: m, current: b });
-            saveAll(); inicializarTablasDashboard();
-            document.getElementById('acc-name').value = ''; document.getElementById('acc-balance').value = '0';
+            saveAll(); inicializarTablasDashboard(); document.getElementById('acc-name').value = ''; document.getElementById('acc-balance').value = '0';
         }
-
         function procesarMovimientoDesplegable() {
-            var tipo = document.getElementById('tx-type').value;
-            var id = parseInt(document.getElementById('tx-account').value);
-            var monto = parseFloat(document.getElementById('tx-amount').value) || 0;
-            var desc = document.getElementById('tx-desc').value.trim() || 'Movimiento general';
+            var tipo = document.getElementById('tx-type').value, id = parseInt(document.getElementById('tx-account').value), monto = parseFloat(document.getElementById('tx-amount').value) || 0, desc = document.getElementById('tx-desc').value.trim() || 'Movimiento general';
             if (!id || monto <= 0) return alert("Datos de transacción inválidos.");
             var cuenta = dbCuentas.find(a => a.id === id);
-            if (tipo === 'Egreso' && cuenta.current < monto) {
-                if (!confirm("Fondos insuficientes en la cuenta. ¿Desea forzar el débito?")) return;
-            }
+            if (tipo === 'Egreso' && cuenta.current < monto) { if (!confirm("Fondos insuficientes en la cuenta. ¿Desea forzar el débito?")) return; }
             cuenta.current += (tipo === 'Ingreso' ? monto : -monto);
             dbTransacciones.push({ date: new Date().toISOString(), accountId: id, accountName: cuenta.name, currency: cuenta.currency, type: tipo, desc: desc, amount: monto });
-            saveAll(); inicializarTablasDashboard();
-            document.getElementById('tx-amount').value = '0'; document.getElementById('tx-desc').value = '';
+            saveAll(); inicializarTablasDashboard(); document.getElementById('tx-amount').value = '0'; document.getElementById('tx-desc').value = '';
         }
 
         function crearCXP() {
-            var p = document.getElementById('cxp-prov').value.trim();
-            var a = parseFloat(document.getElementById('cxp-amount').value) || 0;
-            var c = document.getElementById('cxp-currency').value;
+            var p = document.getElementById('cxp-prov').value.trim(), a = parseFloat(document.getElementById('cxp-amount').value) || 0, c = document.getElementById('cxp-currency').value;
             if (!p || a <= 0) return alert("Ingrese datos válidos.");
             dbCXP.push({ id: Date.now(), prov: p, amount: a, currency: c, status: 'Pendiente' });
-            saveAll(); renderCXP();
-            document.getElementById('cxp-prov').value = ''; document.getElementById('cxp-amount').value = '0';
+            saveAll(); renderCXP(); document.getElementById('cxp-prov').value = ''; document.getElementById('cxp-amount').value = '0';
         }
 
         function renderCXP() {
@@ -283,8 +231,7 @@
         }
 
         function pagarCXP(id) {
-            var item = dbCXP.find(x => x.id === id);
-            var idAcc = parseInt(document.getElementById('pay-select-' + id).value);
+            var item = dbCXP.find(x => x.id === id), idAcc = parseInt(document.getElementById('pay-select-' + id).value);
             if (!idAcc) return alert("Cree una cuenta para esta divisa primero.");
             var cuenta = dbCuentas.find(a => a.id === idAcc);
             if (cuenta.current < item.amount && !confirm("Falta saldo. ¿Forzar el egreso de la cuenta?")) return;
@@ -294,13 +241,10 @@
         }
 
         function crearCXC() {
-            var cl = document.getElementById('cxc-cli').value.trim();
-            var a = parseFloat(document.getElementById('cxc-amount').value) || 0;
-            var c = document.getElementById('cxc-currency').value;
+            var cl = document.getElementById('cxc-cli').value.trim(), a = parseFloat(document.getElementById('cxc-amount').value) || 0, c = document.getElementById('cxc-currency').value;
             if (!cl || a <= 0) return alert("Ingrese datos válidos.");
             dbCXC.push({ id: Date.now(), cli: cl, amount: a, currency: c, status: 'Pendiente' });
-            saveAll(); renderCXC();
-            document.getElementById('cxc-cli').value = ''; document.getElementById('cxc-amount').value = '0';
+            saveAll(); renderCXC(); document.getElementById('cxc-cli').value = ''; document.getElementById('cxc-amount').value = '0';
         }
 
         function renderCXC() {
@@ -314,8 +258,7 @@
         }
 
         function cobrarCXC(id) {
-            var item = dbCXC.find(x => x.id === id);
-            var idAcc = parseInt(document.getElementById('collect-select-' + id).value);
+            var item = dbCXC.find(x => x.id === id), idAcc = parseInt(document.getElementById('collect-select-' + id).value);
             if (!idAcc) return alert("Cree una cuenta para esta divisa primero.");
             var cuenta = dbCuentas.find(a => a.id === idAcc);
             cuenta.current += item.amount; item.status = 'Cobrada';
@@ -353,6 +296,15 @@
                 return filtroTiempoActual === 'semanal' ? d <= 7 : filtroTiempoActual === 'quincenal' ? d <= 15 : filtroTiempoActual === 'mensual' ? d <= 30 : true;
             }).sort((a, b) => new Date(b.date) - new Date(a.date));
             tbody.innerHTML = fil.map(t => `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.accountName}</td><td style="color:${t.type==='Ingreso'?'var(--success)':'var(--danger)'}; font-weight:bold;">${t.type}</td><td>${t.desc}</td><td style="font-weight:bold;">${t.type==='Ingreso'?'+':'-'}${t.amount.toFixed(2)} ${t.currency}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;">Sin movimientos en este período.</td></tr>';
+        }
+
+        function descargarReporteExcel() {
+            if (dbTransacciones.length === 0) return alert("No hay transacciones registradas.");
+            var csv = "\uFEFFFecha,Cuenta,Tipo,Descripcion,Monto,Moneda\n";
+            dbTransacciones.forEach(t => { csv += `"${new Date(t.date).toLocaleDateString()}","${t.accountName}","${t.type}","${t.desc}",${t.amount},"${t.currency}"\n`; });
+            var b = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), link = document.createElement("a");
+            link.href = URL.createObjectURL(b); link.setAttribute("download", "reporte_financiero.csv");
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         function saveAll() { localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); localStorage.setItem('cuentas', JSON.stringify(dbCuentas)); localStorage.setItem('transacciones', JSON.stringify(dbTransacciones)); localStorage.setItem('cxp', JSON.stringify(dbCXP)); localStorage.setItem('cxc', JSON.stringify(dbCXC)); }
