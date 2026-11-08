@@ -3,159 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión Financiera Multimoneda</title>
+    <title>Finanzas Multimoneda</title>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --dark: #1e293b; --light: #f8fafc; --gray: #64748b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { background: #f0f2f5; color: var(--dark); min-height: 100vh; }
-        button { cursor: pointer; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #f0f2f5; color: var(--dark); padding-bottom: 30px; }
+        button { cursor: pointer; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; }
         .hidden { display: none !important; }
-        
-        /* LOGIN */
-        .auth-container { max-width: 400px; margin: 80px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .auth-container h2 { margin-bottom: 20px; color: var(--primary); text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
-        .btn-block { width: 100%; background: var(--primary); color: white; margin-top: 10px; }
-        .auth-links { text-align: center; margin-top: 15px; }
-        .auth-links a { color: var(--primary); text-decoration: none; font-size: 13px; }
-        
-        /* DASHBOARD */
-        header { background: var(--dark); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-        header button { background: var(--danger); color: white; }
-        .main-layout { display: grid; grid-template-columns: 310px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
-        @media(max-width: 992px) { .main-layout { grid-template-columns: 1fr; } }
-        
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card h3 { margin-bottom: 15px; font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
-        
-        .capital-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .cap-box { background: var(--light); padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .auth-container { max-width: 360px; margin: 60px auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 4px; font-size: 13px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
+        .btn-block { width: 100%; background: var(--primary); color: white; margin-top: 8px; }
+        header { background: var(--dark); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .main-layout { display: grid; grid-template-columns: 290px 1fr; gap: 15px; padding: 15px; max-width: 1300px; margin: 0 auto; }
+        @media(max-width: 768px) { .main-layout { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .card h3 { margin-bottom: 10px; font-size: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+        .capital-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+        .cap-box { background: var(--light); padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary); }
         .cap-box.ingresos { border-left-color: var(--success); }
         .cap-box.egresos { border-left-color: var(--danger); }
-        .cap-box span { font-size: 11px; color: var(--gray); text-transform: uppercase; }
-        .cap-box p { font-size: 16px; font-weight: bold; margin-top: 5px; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        .cap-box span { font-size: 10px; color: var(--gray); text-transform: uppercase; }
+        .cap-box p { font-size: 14px; font-weight: bold; margin-top: 3px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 5px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background: var(--light); color: var(--gray); }
-        .btn-ingreso { background: var(--success); color: white; }
-        .btn-egreso { background: var(--danger); color: white; }
-        .report-filters { display: flex; gap: 10px; margin-bottom: 15px; }
-        .report-filters button { background: #e2e8f0; color: var(--dark); }
+        .report-filters { display: flex; gap: 5px; margin-bottom: 10px; }
+        .report-filters button { background: #e2e8f0; font-size: 12px; }
         .report-filters button.active { background: var(--primary); color: white; }
-        .badge { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .badge.admin { background: #fef08a; color: #854d0e; }
     </style>
 </head>
 <body>
-
-    <!-- MÓDULO DE AUTENTICACIÓN -->
     <div id="auth-section">
         <div id="login-box" class="auth-container">
-            <h2>Iniciar Sesión</h2>
-            <div class="form-group">
-                <label>Usuario</label>
-                <input type="text" id="login-user" value="admin">
-            </div>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <input type="password" id="login-pass" value="1234">
-            </div>
-            <button class="btn-block" onclick="ejecutarLogin()">Ingresar</button>
-            <div class="auth-links"><a href="#" onclick="cambiarVistaAuth('recovery')">¿Olvidaste tu contraseña?</a></div>
+            <h2 style="text-align:center;margin-bottom:15px;color:var(--primary)">Iniciar Sesión</h2>
+            <div class="form-group"><label>Usuario</label><input type="text" id="login-user" value="admin"></div>
+            <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" value="1234"></div>
+            <button class="btn-block" onclick="login()">Ingresar</button>
+            <p style="text-align:center;margin-top:10px;"><a href="#" onclick="toggleAuth('rec')" style="font-size:12px;color:var(--primary)">¿Olvidaste tu contraseña?</a></p>
         </div>
-
         <div id="recovery-box" class="auth-container hidden">
-            <h2>Recuperar Clave</h2>
-            <p style="font-size: 13px; color: var(--gray); margin-bottom: 15px; text-align: center;">Introduce el nombre de usuario para recuperar la clave.</p>
-            <div class="form-group">
-                <label>Usuario</label>
-                <input type="text" id="rec-user" placeholder="Ej. admin">
-            </div>
-            <button class="btn-block" onclick="ejecutarRecuperacion()">Recuperar Contraseña</button>
-            <div class="auth-links"><a href="#" onclick="cambiarVistaAuth('login')">Volver al Login</a></div>
+            <h2 style="text-align:center;margin-bottom:15px;">Recuperar Clave</h2>
+            <div class="form-group"><label>Introduce tu Usuario</label><input type="text" id="rec-user" placeholder="admin"></div>
+            <button class="btn-block" onclick="recuperar()">Mostrar Contraseña</button>
+            <p style="text-align:center;margin-top:10px;"><a href="#" onclick="toggleAuth('log')" style="font-size:12px;color:var(--primary)">Volver al Login</a></p>
         </div>
     </div>
 
-    <!-- MÓDULO PRINCIPAL (DASHBOARD) -->
     <div id="dashboard-section" class="hidden">
         <header>
-            <h2>Finanzas Pro v2.5</h2>
-            <div>
-                <span id="user-display" style="margin-right: 15px; font-weight: bold;"></span>
-                <button onclick="ejecutarLogout()">Cerrar Sesión</button>
-            </div>
+            <h4>Finanzas Pro v2.6</h4>
+            <div><span id="user-display" style="margin-right:10px;font-weight:bold;"></span><button onclick="logout()" style="background:var(--danger);color:white;">Salir</button></div>
         </header>
-
         <div class="main-layout">
-            <!-- BARRA LATERAL -->
             <div class="sidebar">
-                <!-- Gestión de Usuarios (Exclusivo Admin) -->
                 <div class="card" id="admin-card">
-                    <h3>Gestión de Usuarios (Admin)</h3>
-                    <div class="form-group"><label>Usuario</label><input type="text" id="new-username" placeholder="Nombre"></div>
-                    <div class="form-group"><label>Clave</label><input type="password" id="new-password" placeholder="Contraseña"></div>
-                    <div class="form-group">
-                        <label>Rol</label>
-                        <select id="new-role"><option value="estandar">Estándar</option><option value="admin">Administrador</option></select>
-                    </div>
-                    <button class="btn-block" style="background: var(--primary);" onclick="crearUsuario()">+ Guardar Usuario</button>
-                    <table id="users-table" style="margin-top:15px; font-size:12px;">
-                        <thead><tr><th>User</th><th>Rol</th><th>Acción</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+                    <h3>Usuarios (Admin)</h3>
+                    <div class="form-group"><label>Usuario</label><input type="text" id="new-user"></div>
+                    <div class="form-group"><label>Clave</label><input type="password" id="new-pass"></div>
+                    <div class="form-group"><label>Rol</label><select id="new-role"><option value="estandar">Estándar</option><option value="admin">Admin</option></select></div>
+                    <button class="btn-block" onclick="crearUser()">Guardar Usuario</button>
+                    <table id="users-table"><thead><tr><th>User</th><th>Rol</th><th>X</th></tr></thead><tbody></tbody></table>
                 </div>
-
-                <!-- Crear Cuenta -->
                 <div class="card">
                     <h3>Nueva Cuenta</h3>
-                    <div class="form-group"><label>Nombre de Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Caja Fuerte, Banesco"></div>
-                    <div class="form-group">
-                        <label>Moneda</label>
-                        <select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="VES">VES (Bs.)</option></select>
-                    </div>
+                    <div class="form-group"><label>Nombre</label><input type="text" id="acc-name" placeholder="Ej. Efectivo"></div>
+                    <div class="form-group"><label>Moneda</label><select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="VES">VES (Bs.)</option></select></div>
                     <div class="form-group"><label>Monto Inicial</label><input type="number" id="acc-balance" value="0" step="0.01"></div>
-                    <button class="btn-block" style="background: var(--dark);" onclick="crearCuenta()">+ Guardar Cuenta</button>
+                    <button class="btn-block" style="background:var(--dark);color:white;" onclick="crearAcc()">Guardar Cuenta</button>
                 </div>
-
-                <!-- Registrar Transacción -->
                 <div class="card">
-                    <h3>Movimientos</h3>
-                    <div class="form-group"><label>Cuenta Seleccionada</label><select id="tx-account"></select></div>
+                    <h3>Movimiento</h3>
+                    <div class="form-group"><label>Cuenta</label><select id="tx-account"></select></div>
                     <div class="form-group"><label>Monto</label><input type="number" id="tx-amount" value="0" step="0.01"></div>
-                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Compra de insumos"></div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-ingreso" style="flex: 1;" onclick="registrarMovimiento('Ingreso')">↑ Ingreso</button>
-                        <button class="btn-egreso" style="flex: 1;" onclick="registrarMovimiento('Egreso')">↓ Egreso</button>
-                    </div>
+                    <div class="form-group"><label>Detalle</label><input type="text" id="tx-desc" placeholder="Ej. Gasto"></div>
+                    <div style="display:flex;gap:5px;"><button style="background:var(--success);color:white;flex:1;" onclick="mov('Ingreso')">Ingreso</button><button style="background:var(--danger);color:white;flex:1;" onclick="mov('Egreso')">Egreso</button></div>
                 </div>
             </div>
-
-            <!-- CONTENIDO PRINCIPAL -->
             <div class="content">
-                <div class="card"><h3>Capital Neto e Historial por Divisa</h3><div id="capital-container"></div></div>
-                <div class="card"><h3>Mis Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
+                <div class="card"><h3>Balances Globales</h3><div id="capital-container"></div></div>
+                <div class="card"><h3>Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Cuenta</th><th>Moneda</th><th>Saldo</th></tr></thead><tbody></tbody></table></div>
                 <div class="card">
-                    <h3>Reporte de Ingresos y Egresos</h3>
-                    <div class="report-filters">
-                        <button id="btn-rep-all" class="active" onclick="filtrarReportes('todos')">Todos</button>
-                        <button id="btn-rep-w" onclick="filtrarReportes('semanal')">Semanal</button>
-                        <button id="btn-rep-f" onclick="filtrarReportes('quincenal')">Quincenal</button>
-                        <button id="btn-rep-m" onclick="filtrarReportes('mensual')">Mensual</button>
-                    </div>
-                    <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
+                    <h3>Reporte de Movimientos</h3>
+                    <div class="report-filters"><button id="b-all" class="active" onclick="filtro('todos')">Todos</button><button id="b-w" onclick="filtro('semanal')">Semanal</button><button id="b-q" onclick="filtro('quincenal')">Quincenal</button><button id="b-m" onclick="filtro('mensual')">Mensual</button></div>
+                    <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Detalle</th><th>Monto</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- SCRIPT SEGURO COMPLETAMENTE OPERATIVO -->
     <script>
-        // Inicialización segura de credenciales y base de datos local libre de quiebres por sintaxis
-        if (!localStorage.getItem('usuarios')) {
-            var listaInicial = [{ user: "admin", pass: "1234", role: "admin" }];
-            localStorage.setItem('usuarios', JSON.stringify(listaInicial));
+        if(!localStorage.getItem('u')){localStorage.setItem('u',JSON.stringify([{user:"admin",pass:"1234",role:"admin"}]));}
+        if(!localStorage.getItem('c')){localStorage.setItem('c',JSON.stringify([]));}
+        if(!localStorage.getItem('t')){localStorage.setItem('t',JSON.stringify([]));}
+        var uDb=JSON.parse(localStorage.getItem('u')),cDb=JSON.parse(localStorage.getItem('c')),tDb=JSON.parse(localStorage.getItem('t')),uAct=null,fAct='todos';
+        function login(){
+            var user=document.getElementById('login-user').value.trim(),pass=document.getElementById('login-pass').value.trim(),found=null;
+            for(var i=0;i<uDb.length;i++){if(uDb[i].user===user&&uDb[i].pass===pass){found=uDb[i];break;}}
+            if(found){
+                uAct=found;document.getElementById('auth-section').classList.add('hidden');document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('user-display').innerText=uAct.user+' ('+uAct.role+')';
+                if(uAct.role==='admin'){document.getElementById('admin-card').classList.remove('hidden');rUsers();}else{document.getElementById('admin-card').classList.add('hidden');}
+                rAll();
+            }else{alert("Datos incorrectos.");}
         }
+        function logout(){uAct=null;document.getElementById('dashboard-section').classList.add('hidden');document.getElementById('auth-section').classList.remove('hidden');}
+        function toggleAuth(v){if(v==='rec'){document.getElementById('login-box').classList.add('hidden');document.getElementById('recovery-box').classList.remove('hidden');}else{document.getElementById('recovery-box').classList.add('hidden');document.getElementById('login-box').classList.remove('hidden');}}
+        function recuperar(){var b=document.getElementById('rec-user').value.trim(),f=null;for(var i=0;i<uDb.length;i++){if(uDb[i].user===b){f=uDb[i];break;}}if(f){alert("Contraseña: "+f.pass);}else{alert("No existe.");}}
+        function rUsers(){var tb=document.querySelector('#users-table tbody'),html='';for(var i=0;i<uDb.length;i++){var btn=uDb[i].user!=='admin'?"<button style='background:var(--danger);color:white;padding:2px 5px;font-size:10px;' onclick='delU(\""+uDb[i].user+"\")'>X</button>":"-";html+="<tr><td>"+uDb[i].user+"</td><td>"+uDb[i].role+"</td><td>"+btn+"</td></tr>";}tb.innerHTML=html;}
+        function crearUser(){var n=document.getElementById('new-user').value.trim(),c=document.getElementById('new-pass').value.trim(),r=document.getElementById('new-role').value;if(!n||!c)return alert("Vacío.");uDb.push({user:n,pass:c,role:r});localStorage.setItem('u',JSON.stringify(uDb));rUsers();document.getElementById('new-user').value='';document.getElementById('new-pass').value='';}
+        function delU(n){uDb=uDb.filter(function(i){return i.user!==n});localStorage.setItem('u',JSON.stringify(uDb));rUsers();}
+        function rAll(){rAccs();rCap();rSel();rRep();}
+        function crearAcc(){var n=document.getElementById('acc-name').value.trim(),m=document.getElementById('acc-currency').value,b=parseFloat(document.getElementById('acc-balance').value)||0;if(!n)return alert("Nombre requerido.");cDb.push({id:Date.now(),name:n,currency:m,current:b});localStorage.setItem('c',JSON.stringify(cDb));rAll();document.getElementById('acc-name').value='';document.getElementById('acc-balance').value='0';}
+        function mov(tipo){
+            var id=parseInt(document.getElementById('tx-account').value),monto=parseFloat(document.getElementById('tx-amount').value)||0,desc=document.getElementById('tx-desc').value.trim()||'Movimiento';
+            if(!id||monto<=0)return alert("Datos inválidos.");var acc=null;for(var i=0;i<cDb.length;i++){if(cDb[i].id===id){acc=cDb[i];break;}}
+            if(tipo==='Egreso'&&acc.current<monto){if(!confirm("Falta saldo. ¿Continuar?"))return;}
+            acc.current+=(tipo==='Ingreso'?monto:-monto);tDb.push({date:new Date().toISOString(),accountId:id,accountName:acc.name,currency:acc.currency,type:tipo,desc:desc,amount:monto});
+            localStorage.setItem('c',JSON.stringify(cDb));localStorage.setItem('t',JSON.stringify(tDb));rAll();document.getElementById('tx-amount').value='0';document.getElementById('tx-desc').value='';
+        }
+        function rAccs(){var tb=document.querySelector('#accounts-table tbody'),html='';for(var i=0;i<cDb.length;i++){html+="<tr><td><b>"+cDb[i].name+"</b></td><td>"+cDb[i].currency+"</td><td>"+cDb[i].current.toFixed(2)+"</td></tr>";}tb.innerHTML=html;}
+        function rSel(){var s=document.getElementById('tx-account'),html='';for(var i=0;i<cDb.length;i++){html+="<option value='"+cDb[i].id+"'>"+cDb[i].name+" ("+cDb[i].currency+")</option>";}s.innerHTML=html;}
+        function rCap(){
+            var con=document.getElementById('capital-container');con.innerHTML='';
+            ['USD','EUR','VES'].forEach(function(m){
+                var fil=cDb.filter(function(a){return a.currency===m});if(fil.length===0)return;
+                var cap=0;for(var i=0;i<fil.length;i++){cap+=fil[i].current;}
+                var ing=0,egr=0;for(var j=0;j<tDb.length;j++){if(tDb[j].currency===m){if(tDb[j].type==='Ingreso')ing+=tDb[j].amount;else egr+=tDb[j].amount;}}
+                con.innerHTML+="<div style='margin-bottom:10px;'><h5>Moneda: "+m+"</h5><div class='capital-grid'><div class='cap-box'><span>Capital</span><p>"+cap.toFixed(2)+"</p></div><div class='cap-box ingresos'><span>Ingresos</span><p>+"+ing.toFixed(2)+"</p></div><div class='cap-box egresos'><span>Egresos</span><p>-"+egr.toFixed(2)+"</p></div></div></div>";
+            });
+        }
+        function filtro(r){fAct=r;document.querySelectorAll('.report-filters button').forEach(function(b){b.classList.remove('active')});var id=r==='semanal'?'b-w':r==='quincenal'?'b-q':r==='mensual'?'b-m':'b-all';document.getElementById(id).classList.add('active');rRep();}
+        function rRep(){
+            var tb=document.querySelector('#reports-table tbody'),ahora=new Date(),fil=tDb.filter(function(t){
+                var d=Math.ceil(Math.abs(ahora-new Date(t.date))/(1000*60*60*24));
+                return fAct==='semanal'?d<=7:fAct==='quincenal'?d<=15:fAct==='mensual'?d<=30:true;
+            }).sort(function(a,b){return new Date(b.date)-new Date(a.date)}),html='';
+            for(var i=0;i<fil.length;i++){var t=fil[i],c=t.type==='Ingreso'?'var(--success)':'var(--danger)',s=t.type==='Ingreso'?'+':'-';html+="<tr><td>"+new Date(t.date).toLocaleDateString()+"</td><td>"+t.accountName+"</td><td style='color:"+c+";font-weight:bold;'>"+t.type+"</td><td>"+t.desc+"</td><td>"+s+t.amount.toFixed(2)+" "+t.currency+"</td></tr>";}
+            tb.innerHTML=html;if(fil.length===0){tb.innerHTML="<tr><td colspan='5' style='text-align:center;color:var(--gray);'>Sin movimientos.</td></tr>";}
+        }
+    </script>
+</body>
+</html>
