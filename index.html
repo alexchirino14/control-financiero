@@ -3,9 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Control Financiero Pro v3.5</title>
+    <title>Sistema Financiero Corporativo v4.0</title>
     <style>
-        :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --warning: #d97706; --dark: #1e293b; --light: #f8fafc; --gray: #64748b; }
+        :root { 
+            --primary: #2563eb; 
+            --success: #16a34a; 
+            --danger: #dc2626; 
+            --warning: #d97706; 
+            --dark: #1e293b; 
+            --light: #f8fafc; 
+            --gray: #64748b; 
+            --supervisor: #7c3aed;
+            --contador: #0891b2;
+            --cajero: #db2777;
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
         body { background: #f0f2f5; color: var(--dark); min-height: 100vh; padding-bottom: 40px; }
         button { cursor: pointer; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; transition: 0.2s; font-size: 13px; }
@@ -33,9 +44,20 @@
         .report-filters { display: flex; gap: 8px; margin-bottom: 15px; }
         .report-filters button { background: #e2e8f0; color: var(--dark); padding: 6px 12px; }
         .report-filters button.active { background: var(--primary); color: white; }
-        .badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .badge.pendientes { background: #ffedd5; color: #c2410c; }
-        .badge.pagadas { background: #dcfce7; color: #15803d; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; }
+        .badge.admin { background: var(--dark); }
+        .badge.supervisor { background: var(--supervisor); }
+        .badge.contador { background: var(--contador); }
+        .badge.cajero { background: var(--cajero); }
+        .badge.estandar { background: var(--gray); }
+        .badge.vencido { background: var(--danger); animation: pulse 1.5s infinite; }
+        .badge.pendiente { background: var(--warning); }
+        .badge.liquidada { background: var(--success); }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .chart-bar-container { display: flex; align-items: flex-end; gap: 10px; height: 120px; padding: 10px; background: var(--light); border-radius: 8px; margin-top: 10px; }
+        .chart-bar { flex: 1; background: var(--primary); border-radius: 4px 4px 0 0; transition: height 0.5s ease; position: relative; min-height: 5px; }
+        .chart-bar-label { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; }
+        .chart-bar-title { text-align: center; font-size: 11px; margin-top: 4px; color: var(--gray); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -73,22 +95,27 @@
             <div class="sidebar">
                 <div class="card" id="bcv-card">
                     <h3>Tasa Oficial BCV</h3>
-                    <div class="form-group">
-                        <label>Tasa Activa (Bs / $)</label>
-                        <input type="number" id="bcv-rate-input" value="48.50" step="0.01" onchange="actualizarTasaBCV()">
-                    </div>
-                    <p style="font-size:12px; color:var(--gray);">Cambia este valor para actualizar todas las reconversiones.</p>
+                    <div class="form-group"><label>Tasa Activa (Bs / $)</label><input type="number" id="bcv-rate-input" value="48.50" step="0.01" onchange="actualizarTasaBCV()"></div>
                 </div>
 
                 <div class="card" id="admin-card">
                     <h3>Gestión de Usuarios (Admin)</h3>
                     <div class="form-group"><label>Usuario</label><input type="text" id="new-username"></div>
                     <div class="form-group"><label>Clave</label><input type="password" id="new-password"></div>
-                    <div class="form-group"><label>Rol</label><select id="new-role"><option value="estandar">Estándar</option><option value="admin">Administrador</option></select></div>
+                    <div class="form-group">
+                        <label>Rol Corporativo</label>
+                        <select id="new-role">
+                            <option value="estandar">Estándar (Lectura)</option>
+                            <option value="cajero">Cajero (Solo Movimientos)</option>
+                            <option value="contador">Contador (Movimientos e Informes)</option>
+                            <option value="supervisor">Supervisor (Aprobaciones y Tasas)</option>
+                            <option value="admin">Administrador Total</option>
+                        </select>
+                    </div>
                     <button class="btn-block" onclick="crearUsuario()">+ Guardar Usuario</button>
                     <table id="users-table" style="font-size:11px;"><thead><tr><th>User</th><th>Rol</th><th>X</th></tr></thead><tbody></tbody></table>
                 </div>
-                <div class="card">
+                <div class="card" id="form-cuenta-card">
                     <h3>Nueva Cuenta</h3>
                     <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Banesco"></div>
                     <div class="form-group"><label>Moneda</label><select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="VES">VES (Bs.)</option></select></div>
@@ -96,7 +123,7 @@
                     <button class="btn-block" style="background:var(--dark); color:white;" onclick="crearCuenta()">+ Guardar Cuenta</button>
                 </div>
 
-                <div class="card">
+                <div class="card" id="form-movimiento-card">
                     <h3>Registrar Transacción</h3>
                     <div class="form-group"><label>Tipo de Operación</label><select id="tx-type"><option value="Ingreso">↑ Ingreso (Suma al Capital)</option><option value="Egreso">↓ Egreso / Gasto (Resta del Capital)</option></select></div>
                     <div class="form-group"><label>Cuenta Seleccionada</label><select id="tx-account" class="acc-select-bind"></select></div>
@@ -109,46 +136,59 @@
                 <div class="card" style="background: linear-gradient(135deg, #eff6ff, #ffffff); border: 1px solid #bfdbfe;">
                     <h3>Calculadora de Reconversión USD ⇄ VES (Tasa BCV)</h3>
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <div class="form-group" style="flex: 1; min-width: 140px;">
-                            <label>Monto en Dólares (USD)</label>
-                            <input type="number" id="calc-usd" value="1" step="0.01" oninput="calcularDeUSDaVES()">
-                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 140px;"><label>Monto en Dólares (USD)</label><input type="number" id="calc-usd" value="1" step="0.01" oninput="calcularDeUSDaVES()"></div>
                         <div style="display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: var(--primary); padding-top: 15px;"> ⇄ </div>
-                        <div class="form-group" style="flex: 1; min-width: 140px;">
-                            <label>Monto Equivalente en Bolívares (VES)</label>
-                            <input type="number" id="calc-ves" value="0" step="0.01" oninput="calcularDeVESaUSD()">
+                        <div class="form-group" style="flex: 1; min-width: 140px;"><label>Monto Equivalente en Bolívares (VES)</label><input type="number" id="calc-ves" value="0" step="0.01" oninput="calcularDeVESaUSD()"></div>
+                    </div>
+                </div>
+
+                <!-- GRÁFICAS VISUALES DE CAPITAL POR DIVISA -->
+                <div class="card">
+                    <h3>Análisis Estadístico Visual de Capitales (Proyección BCV)</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 10px;">
+                        <div>
+                            <div class="chart-bar-container" id="chart-usd-container"></div>
+                            <div class="chart-bar-title">Distribución de Fondos en Cuentas USD ($)</div>
+                        </div>
+                        <div>
+                            <div class="chart-bar-container" id="chart-ves-container"></div>
+                            <div class="chart-bar-title">Distribución de Fondos en Cuentas VES (Bs.)</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card"><h3>Capital Neto e Historial por Divisa</h3><div id="capital-container"></div></div>
                 <div class="card"><h3>Mis Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
-                <div class="card">
-                    <h3>Cuentas Pendientes por Pagar (Pasivos)</h3>
+
+                <!-- PASIVOS: CUENTAS POR PAGAR CON FECHA DE VENCIMIENTO -->
+                <div class="card" id="cxp-card-panel">
+                    <h3>Cuentas Pendientes por Pagar (Pasivos con Alerta de Vencimiento)</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
                         <div class="form-group"><label>Proveedor</label><input type="text" id="cxp-prov"></div>
                         <div class="form-group"><label>Monto</label><input type="number" id="cxp-amount" value="0" step="0.01"></div>
                         <div class="form-group"><label>Moneda</label><select id="cxp-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="VES">VES</option></select></div>
+                        <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="cxp-date"></div>
                         <button style="background:var(--warning); color:white; margin-bottom:12px;" onclick="crearCXP()">+ Registrar Deuda</button>
                     </div>
-                    <table id="cxp-table"><thead><tr><th>Proveedor</th><th>Monto</th><th>Moneda</th><th>Estado</th><th>Pagar Desde</th><th>Acción</th></tr></thead><tbody></tbody></table>
+                    <table id="cxp-table"><thead><tr><th>Proveedor</th><th>Monto</th><th>Moneda</th><th>Vence</th><th>Estado</th><th>Pagar Desde</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
-
-                <div class="card">
-                    <h3>Cuentas Pendientes por Cobrar (Activos)</h3>
+                <!-- ACTIVOS: CUENTAS POR COBRAR CON FECHA DE VENCIMIENTO -->
+                <div class="card" id="cxc-card-panel">
+                    <h3>Cuentas Pendientes por Cobrar (Activos con Alerta de Vencimiento)</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
                         <div class="form-group"><label>Cliente</label><input type="text" id="cxc-cli"></div>
                         <div class="form-group"><label>Monto</label><input type="number" id="cxc-amount" value="0" step="0.01"></div>
                         <div class="form-group"><label>Moneda</label><select id="cxc-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="VES">VES</option></select></div>
+                        <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="cxc-date"></div>
                         <button style="background:var(--success); color:white; margin-bottom:12px;" onclick="crearCXC()">+ Registrar Cobro</button>
                     </div>
-                    <table id="cxc-table"><thead><tr><th>Cliente</th><th>Monto</th><th>Moneda</th><th>Estado</th><th>Recibir En</th><th>Acción</th></tr></thead><tbody></tbody></table>
+                    <table id="cxc-table"><thead><tr><th>Cliente</th><th>Monto</th><th>Moneda</th><th>Vence</th><th>Estado</th><th>Recibir En</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
 
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px;">
                         <h3 style="border: none; margin: 0;">Reporte Temporal de Movimientos</h3>
-                        <button style="background: var(--success); color: white;" onclick="descargarReporteExcel()">🟢 Descargar Excel (.csv)</button>
+                        <button id="btn-excel-export" style="background: var(--success); color: white;" onclick="descargarReporteExcel()">🟢 Descargar Excel (.csv)</button>
                     </div>
                     <div class="report-filters"><button id="btn-rep-all" class="active" onclick="filterReports('todos')">Todos</button><button id="btn-rep-w" onclick="filterReports('semanal')">Semanal</button><button id="btn-rep-f" onclick="filterReports('quincenal')">Quincenal</button><button id="btn-rep-m" onclick="filterReports('mensual')">Mensual</button></div>
                     <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
@@ -181,26 +221,53 @@
                 usuarioActivo = cuentaValida;
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
-                document.getElementById('user-display').innerText = usuarioActivo.user + " (" + usuarioActivo.role + ")";
+                document.getElementById('user-display').innerText = usuarioActivo.user + " (" + usuarioActivo.role.toUpperCase() + ")";
                 document.getElementById('bcv-rate-input').value = bcvRate;
-                if (usuarioActivo.role === 'admin') {
-                    document.getElementById('admin-card').classList.remove('hidden');
-                    document.getElementById('bcv-card').classList.remove('hidden');
-                    actualizarListaUsuarios();
-                } else { document.getElementById('admin-card').classList.add('hidden'); document.getElementById('bcv-card').classList.add('hidden'); }
-                inicializarTablasDashboard(); calcularDeUSDaVES();
+                establecerPermisosPorRol();
+                inicializarTablasDashboard(); 
+                calcularDeUSDaVES();
             } else { alert("Usuario o clave incorrectos."); }
+        }
+        function establecerPermisosPorRol() {
+            var r = usuarioActivo.role;
+            // Ocultar por defecto
+            document.getElementById('admin-card').classList.add('hidden');
+            document.getElementById('bcv-card').classList.add('hidden');
+            document.getElementById('form-cuenta-card').classList.add('hidden');
+            document.getElementById('form-movimiento-card').classList.add('hidden');
+            document.getElementById('cxp-card-panel').classList.add('hidden');
+            document.getElementById('cxc-card-panel').classList.add('hidden');
+            document.getElementById('btn-excel-export').classList.add('hidden');
+
+            if (r === 'admin') {
+                document.getElementById('admin-card').classList.remove('hidden');
+                document.getElementById('bcv-card').classList.remove('hidden');
+                document.getElementById('form-cuenta-card').classList.remove('hidden');
+                document.getElementById('form-movimiento-card').classList.remove('hidden');
+                document.getElementById('cxp-card-panel').classList.remove('hidden');
+                document.getElementById('cxc-card-panel').classList.remove('hidden');
+                document.getElementById('btn-excel-export').classList.remove('hidden');
+                actualizarListaUsuarios();
+            } else if (r === 'supervisor') {
+                document.getElementById('bcv-card').classList.remove('hidden');
+                document.getElementById('cxp-card-panel').classList.remove('hidden');
+                document.getElementById('cxc-card-panel').classList.remove('hidden');
+            } else if (r === 'contador') {
+                document.getElementById('form-movimiento-card').classList.remove('hidden');
+                document.getElementById('btn-excel-export').classList.remove('hidden');
+            } else if (r === 'cajero') {
+                document.getElementById('form-movimiento-card').classList.remove('hidden');
+            }
         }
 
         function ejecutarLogout() { usuarioActivo = null; document.getElementById('dashboard-section').classList.add('hidden'); document.getElementById('auth-section').classList.remove('hidden'); }
         function cambiarVistaAuth(v) { if (v === 'recovery') { document.getElementById('login-box').classList.add('hidden'); document.getElementById('recovery-box').classList.remove('hidden'); } else { document.getElementById('recovery-box').classList.add('hidden'); document.getElementById('login-box').classList.remove('hidden'); } }
         function ejecutarRecuperacion() { var b = document.getElementById('rec-user').value.trim(), enc = null; for (var i = 0; i < dbUsuarios.length; i++) { if (dbUsuarios[i].user === b) { enc = dbUsuarios[i]; break; } } if (enc !== null) { alert("La contraseña es: " + enc.pass); } else { alert("El usuario no existe."); } }
-
         function actualizarListaUsuarios() {
             var tbody = document.querySelector('#users-table tbody'), filas = '';
             for (var i = 0; i < dbUsuarios.length; i++) {
                 var u = dbUsuarios[i], btn = u.user !== 'admin' ? "<button style='background:var(--danger);color:white;padding:2px 6px;font-size:10px;' onclick='eliminarUsuario(\""+u.user+"\")'>X</button>" : "-";
-                filas += "<tr><td>" + u.user + "</td><td>" + u.role + "</td><td>" + btn + "</td></tr>";
+                filas += "<tr><td>" + u.user + "</td><td><span class='badge "+u.role+"'>" + u.role + "</span></td><td>" + btn + "</td></tr>";
             }
             tbody.innerHTML = filas;
         }
@@ -211,14 +278,14 @@
             dbUsuarios.push({ user: n, pass: c, role: r }); localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); actualizarListaUsuarios(); document.getElementById('new-username').value = ''; document.getElementById('new-password').value = '';
         }
         function eliminarUsuario(nombre) { dbUsuarios = dbUsuarios.filter(function(i) { return i.user !== nombre; }); localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); actualizarListaUsuarios(); }
-        function inicializarTablasDashboard() { actualizarTablaCuentas(); actualizarResumenCapital(); actualizarDesplegableCuentas(); actualizarTablaReportes(); renderCXP(); renderCXC(); }
+        function inicializarTablasDashboard() { actualizarTablaCuentas(); actualizarResumenCapital(); actualizarDesplegableCuentas(); actualizarTablaReportes(); renderCXP(); renderCXC(); dibujarGraficasCapital(); }
+
         function actualizarTasaBCV() {
             var val = parseFloat(document.getElementById('bcv-rate-input').value);
-            if(val > 0) { bcvRate = val; localStorage.setItem('bcv_rate', bcvRate.toFixed(2)); calcularDeUSDaVES(); actualizarResumenCapital(); }
+            if(val > 0) { bcvRate = val; localStorage.setItem('bcv_rate', bcvRate.toFixed(2)); calcularDeUSDaVES(); inicializarTablasDashboard(); }
         }
         function calcularDeUSDaVES() { var usd = parseFloat(document.getElementById('calc-usd').value) || 0; document.getElementById('calc-ves').value = (usd * bcvRate).toFixed(2); }
         function calcularDeVESaUSD() { var ves = parseFloat(document.getElementById('calc-ves').value) || 0; document.getElementById('calc-usd').value = bcvRate > 0 ? (ves / bcvRate).toFixed(2) : 0; }
-        
         function crearCuenta() {
             var n = document.getElementById('acc-name').value.trim(), m = document.getElementById('acc-currency').value, b = parseFloat(document.getElementById('acc-balance').value) || 0; if (!n) return alert("Indique un nombre.");
             dbCuentas.push({ id: Date.now(), name: n, currency: m, current: b }); saveAll(); inicializarTablasDashboard(); document.getElementById('acc-name').value = ''; document.getElementById('acc-balance').value = '0';
@@ -231,19 +298,27 @@
             saveAll(); inicializarTablasDashboard(); document.getElementById('tx-amount').value = '0'; document.getElementById('tx-desc').value = '';
         }
 
-        function crearCXP() {
-            var p = document.getElementById('cxp-prov').value.trim(), a = parseFloat(document.getElementById('cxp-amount').value) || 0, c = document.getElementById('cxp-currency').value; if (!p || a <= 0) return alert("Ingrese datos válidos.");
-            dbCXP.push({ id: Date.now(), prov: p, amount: a, currency: c, status: 'Pendiente' }); saveAll(); renderCXP(); document.getElementById('cxp-prov').value = ''; document.getElementById('cxp-amount').value = '0';
+        function evaluarVencimiento(fechaLimite, estado) {
+            if (estado !== 'Pendiente') return `<span class="badge liquidada">Liquidada</span>`;
+            var limite = new Date(fechaLimite + "T23:59:59"), hoy = new Date();
+            limite.setHours(0,0,0,0); hoy.setHours(0,0,0,0);
+            return hoy > limite ? `<span class="badge vencido">Vencida</span>` : `<span class="badge pendiente">Pendiente</span>`;
         }
 
+        function crearCXP() {
+            var p = document.getElementById('cxp-prov').value.trim(), a = parseFloat(document.getElementById('cxp-amount').value) || 0, c = document.getElementById('cxp-currency').value, d = document.getElementById('cxp-date').value; if (!p || a <= 0 || !d) return alert("Ingrese datos y fecha válidos.");
+            dbCXP.push({ id: Date.now(), prov: p, amount: a, currency: c, date: d, status: 'Pendiente' }); saveAll(); renderCXP(); document.getElementById('cxp-prov').value = ''; document.getElementById('cxp-amount').value = '0'; document.getElementById('cxp-date').value = '';
+        }
         function renderCXP() {
             var tbody = document.querySelector('#cxp-table tbody'), html = '';
             dbCXP.forEach(item => {
                 var selectCuentas = `<select id="pay-select-${item.id}">` + dbCuentas.filter(a => a.currency === item.currency).map(a => `<option value="${a.id}">${a.name}</option>`).join('') + `</select>`;
                 var btn = item.status === 'Pendiente' ? `<button style="background:var(--danger);color:white;" onclick="pagarCXP(${item.id})">Liquidar</button>` : 'Cancelada';
-                html += `<tr><td>${item.prov}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td><span class="badge ${item.status === 'Pendiente' ? 'pendientes' : 'pagadas'}">${item.status}</span></td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
-            }); tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;">No hay cuentas por pagar pendientes.</td></tr>';
+                var alerta = evaluarVencimiento(item.date, item.status);
+                html += `<tr><td>${item.prov}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td>${item.date}</td><td>${alerta}</td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
+            }); tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No hay cuentas por pagar pendientes.</td></tr>';
         }
+
         function pagarCXP(id) {
             var item = dbCXP.find(x => x.id === id), idAcc = parseInt(document.getElementById('pay-select-' + id).value); if (!idAcc) return alert("Cree una cuenta para esta divisa primero.");
             var cuenta = dbCuentas.find(a => a.id === idAcc); if (cuenta.current < item.amount && !confirm("Falta saldo. ¿Forzar el egreso de la cuenta?")) return;
@@ -252,8 +327,8 @@
         }
 
         function crearCXC() {
-            var cl = document.getElementById('cxc-cli').value.trim(), a = parseFloat(document.getElementById('cxc-amount').value) || 0, c = document.getElementById('cxc-currency').value; if (!cl || a <= 0) return alert("Ingrese datos válidos.");
-            dbCXC.push({ id: Date.now(), cli: cl, amount: a, currency: c, status: 'Pendiente' }); saveAll(); renderCXC(); document.getElementById('cxc-cli').value = ''; document.getElementById('cxc-amount').value = '0';
+            var cl = document.getElementById('cxc-cli').value.trim(), a = parseFloat(document.getElementById('cxc-amount').value) || 0, c = document.getElementById('cxc-currency').value, d = document.getElementById('cxc-date').value; if (!cl || a <= 0 || !d) return alert("Ingrese datos y fecha válidos.");
+            dbCXC.push({ id: Date.now(), cli: cl, amount: a, currency: c, date: d, status: 'Pendiente' }); saveAll(); renderCXC(); document.getElementById('cxc-cli').value = ''; document.getElementById('cxc-amount').value = '0'; document.getElementById('cxc-date').value = '';
         }
 
         function renderCXC() {
@@ -261,8 +336,9 @@
             dbCXC.forEach(item => {
                 var selectCuentas = `<select id="collect-select-${item.id}">` + dbCuentas.filter(a => a.currency === item.currency).map(a => `<option value="${a.id}">${a.name}</option>`).join('') + `</select>`;
                 var btn = item.status === 'Pendiente' ? `<button style="background:var(--success);color:white;" onclick="cobrarCXC(${item.id})">Cobrar</button>` : 'Cobrada';
-                html += `<tr><td>${item.cli}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td><span class="badge ${item.status === 'Pendiente' ? 'pendientes' : 'pagadas'}">${item.status}</span></td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
-            }); tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;">No hay cuentas por cobrar pendientes.</td></tr>';
+                var alerta = evaluarVencimiento(item.date, item.status);
+                html += `<tr><td>${item.cli}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td>${item.date}</td><td>${alerta}</td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
+            }); tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No hay cuentas por cobrar pendientes.</td></tr>';
         }
 
         function cobrarCXC(id) {
@@ -270,10 +346,18 @@
             var cuenta = dbCuentas.find(a => a.id === idAcc); cuenta.current += item.amount; item.status = 'Cobrada'; dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Ingreso', desc: 'Cobro Activo: ' + item.cli, amount: item.amount });
             saveAll(); inicializarTablasDashboard();
         }
+        function dibujarGraficasCapital() {
+            var conUsd = document.getElementById('chart-usd-container'), conVes = document.getElementById('chart-ves-container');
+            var accountsUsd = dbCuentas.filter(a => a.currency === 'USD'), accountsVes = dbCuentas.filter(a => a.currency === 'VES');
+            var maxUsd = Math.max(...accountsUsd.map(a => a.current), 1), maxVes = Math.max(...accountsVes.map(a => a.current), 1);
+
+            conUsd.innerHTML = accountsUsd.map(a => `<div class="chart-bar" style="height: ${(a.current / maxUsd * 100)}%; background:var(--primary);"><span class="chart-bar-label">${a.current.toFixed(0)}</span><div style="position:absolute; bottom:-18px; font-size:9px; width:100%; text-align:center; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.name}</div></div>`).join('') || '<div style="color:var(--gray);font-size:12px;width:100%;text-align:center;">Sin cuentas USD</div>';
+            conVes.innerHTML = accountsVes.map(a => `<div class="chart-bar" style="height: ${(a.current / maxVes * 100)}%; background:var(--warning);"><span class="chart-bar-label">${a.current.toFixed(0)}</span><div style="position:absolute; bottom:-18px; font-size:9px; width:100%; text-align:center; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.name}</div></div>`).join('') || '<div style="color:var(--gray);font-size:12px;width:100%;text-align:center;">Sin cuentas VES</div>';
+        }
 
         function actualizarTablaCuentas() {
             var tbody = document.querySelector('#accounts-table tbody');
-            tbody.innerHTML = dbCuentas.map(c => `<tr><td><strong>${c.name}</strong></td><td><span class="badge">${c.currency}</span></td><td style="font-weight:bold; color:${c.current >= 0 ? 'var(--success)':'var(--danger)'};">${c.current.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;">No hay cuentas registradas.</td></tr>';
+            tbody.innerHTML = dbCuentas.map(c => `<tr><td><strong>${c.name}</strong></td><td><span class="badge admin">${c.currency}</span></td><td style="font-weight:bold; color:${c.current >= 0 ? 'var(--success)':'var(--danger)'};">${c.current.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;">No hay cuentas registradas.</td></tr>';
         }
 
         function actualizarDesplegableCuentas() { var binds = document.querySelectorAll('.acc-select-bind'), html = dbCuentas.map(c => `<option value="${c.id}">${c.name} (${c.currency})</option>`).join(''); binds.forEach(sel => sel.innerHTML = html); }
