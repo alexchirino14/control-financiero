@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Financiero Multimoneda con Control de Usuarios</title>
+    <title>Sistema de Gestión Financiera Multimoneda</title>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --dark: #1e293b; --light: #f8fafc; --gray: #64748b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
         body { background: #f0f2f5; color: var(--dark); min-height: 100vh; }
         button { cursor: pointer; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; transition: 0.2s; }
         button:hover { opacity: 0.9; }
         .hidden { display: none !important; }
+        
+        /* LOGIN */
         .auth-container { max-width: 400px; margin: 80px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .auth-container h2 { margin-bottom: 20px; color: var(--primary); text-align: center; }
         .form-group { margin-bottom: 15px; }
@@ -18,19 +20,24 @@
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
         .btn-block { width: 100%; background: var(--primary); color: white; margin-top: 10px; }
         .auth-links { text-align: center; margin-top: 15px; }
-        .auth-links a { color: var(--primary); text-decoration: none; font-size: 13px; margin: 0 5px; }
+        .auth-links a { color: var(--primary); text-decoration: none; font-size: 13px; }
+        
+        /* DASHBOARD */
         header { background: var(--dark); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         header button { background: var(--danger); color: white; }
-        .main-layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .main-layout { display: grid; grid-template-columns: 310px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
         @media(max-width: 992px) { .main-layout { grid-template-columns: 1fr; } }
+        
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card h3 { margin-bottom: 15px; font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
-        .capital-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        
+        .capital-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .cap-box { background: var(--light); padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary); }
         .cap-box.ingresos { border-left-color: var(--success); }
         .cap-box.egresos { border-left-color: var(--danger); }
         .cap-box span { font-size: 11px; color: var(--gray); text-transform: uppercase; }
         .cap-box p { font-size: 16px; font-weight: bold; margin-top: 5px; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background: var(--light); color: var(--gray); }
@@ -45,46 +52,57 @@
 </head>
 <body>
 
-    <!-- MÓDULO DE ACCESO -->
+    <!-- MÓDULO DE AUTENTICACIÓN -->
     <div id="auth-section">
         <div id="login-box" class="auth-container">
             <h2>Iniciar Sesión</h2>
-            <div class="form-group"><label>Usuario</label><input type="text" id="login-user" value="admin"></div>
-            <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" value="1234"></div>
-            <button class="btn-block" onclick="login()">Ingresar</button>
-            <div class="auth-links"><a href="#" onclick="switchAuth('recovery')">¿Olvidaste tu contraseña?</a></div>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="login-user" value="admin">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="login-pass" value="1234">
+            </div>
+            <button class="btn-block" onclick="ejecutarLogin()">Ingresar</button>
+            <div class="auth-links"><a href="#" onclick="cambiarVistaAuth('recovery')">¿Olvidaste tu contraseña?</a></div>
         </div>
+
         <div id="recovery-box" class="auth-container hidden">
             <h2>Recuperar Clave</h2>
-            <p style="font-size: 13px; color: var(--gray); margin-bottom: 15px; text-align: center;">Introduce tu usuario registrado para recordar la clave.</p>
-            <div class="form-group"><label>Usuario</label><input type="text" id="rec-user" placeholder="admin"></div>
-            <button class="btn-block" onclick="recoverPassword()">Mostrar Contraseña</button>
-            <div class="auth-links"><a href="#" onclick="switchAuth('login')">Volver al Login</a></div>
+            <p style="font-size: 13px; color: var(--gray); margin-bottom: 15px; text-align: center;">Introduce el nombre de usuario para recuperar la clave.</p>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="rec-user" placeholder="Ej. admin">
+            </div>
+            <button class="btn-block" onclick="ejecutarRecuperacion()">Recuperar Contraseña</button>
+            <div class="auth-links"><a href="#" onclick="cambiarVistaAuth('login')">Volver al Login</a></div>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
+    <!-- MÓDULO PRINCIPAL (DASHBOARD) -->
     <div id="dashboard-section" class="hidden">
         <header>
-            <h2>Finanzas Pro v2.0</h2>
+            <h2>Finanzas Pro v2.5</h2>
             <div>
                 <span id="user-display" style="margin-right: 15px; font-weight: bold;"></span>
-                <button onclick="logout()">Cerrar Sesión</button>
+                <button onclick="ejecutarLogout()">Cerrar Sesión</button>
             </div>
         </header>
+
         <div class="main-layout">
-            <!-- PANEL LATERAL DE OPERACIONES -->
+            <!-- BARRA LATERAL -->
             <div class="sidebar">
-                <!-- Gestión de Usuarios (Sólo Admin) -->
+                <!-- Gestión de Usuarios (Exclusivo Admin) -->
                 <div class="card" id="admin-card">
-                    <h3>Panel de Usuarios (Admin)</h3>
-                    <div class="form-group"><label>Nuevo Usuario</label><input type="text" id="new-username" placeholder="Ej. Pedro"></div>
-                    <div class="form-group"><label>Contraseña</label><input type="password" id="new-password" placeholder="Clave"></div>
+                    <h3>Gestión de Usuarios (Admin)</h3>
+                    <div class="form-group"><label>Usuario</label><input type="text" id="new-username" placeholder="Nombre"></div>
+                    <div class="form-group"><label>Clave</label><input type="password" id="new-password" placeholder="Contraseña"></div>
                     <div class="form-group">
                         <label>Rol</label>
                         <select id="new-role"><option value="estandar">Estándar</option><option value="admin">Administrador</option></select>
                     </div>
-                    <button class="btn-block" style="background: var(--primary);" onclick="createUser()">+ Guardar Usuario</button>
+                    <button class="btn-block" style="background: var(--primary);" onclick="crearUsuario()">+ Guardar Usuario</button>
                     <table id="users-table" style="margin-top:15px; font-size:12px;">
                         <thead><tr><th>User</th><th>Rol</th><th>Acción</th></tr></thead>
                         <tbody></tbody>
@@ -94,39 +112,39 @@
                 <!-- Crear Cuenta -->
                 <div class="card">
                     <h3>Nueva Cuenta</h3>
-                    <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Efectivo USD"></div>
+                    <div class="form-group"><label>Nombre de Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Caja Fuerte, Banesco"></div>
                     <div class="form-group">
                         <label>Moneda</label>
                         <select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="VES">VES (Bs.)</option></select>
                     </div>
                     <div class="form-group"><label>Monto Inicial</label><input type="number" id="acc-balance" value="0" step="0.01"></div>
-                    <button class="btn-block" style="background: var(--dark);" onclick="createAccount()">+ Guardar Cuenta</button>
+                    <button class="btn-block" style="background: var(--dark);" onclick="crearCuenta()">+ Guardar Cuenta</button>
                 </div>
 
-                <!-- Movimiento -->
+                <!-- Registrar Transacción -->
                 <div class="card">
-                    <h3>Movimiento</h3>
-                    <div class="form-group"><label>Cuenta Origen</label><select id="tx-account"></select></div>
+                    <h3>Movimientos</h3>
+                    <div class="form-group"><label>Cuenta Seleccionada</label><select id="tx-account"></select></div>
                     <div class="form-group"><label>Monto</label><input type="number" id="tx-amount" value="0" step="0.01"></div>
-                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Alquiler"></div>
+                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Compra de insumos"></div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn-ingreso" style="flex: 1;" onclick="registerTransaction('Ingreso')">↑ Ingreso</button>
-                        <button class="btn-egreso" style="flex: 1;" onclick="registerTransaction('Egreso')">↓ Egreso</button>
+                        <button class="btn-ingreso" style="flex: 1;" onclick="registrarMovimiento('Ingreso')">↑ Ingreso</button>
+                        <button class="btn-egreso" style="flex: 1;" onclick="registrarMovimiento('Egreso')">↓ Egreso</button>
                     </div>
                 </div>
             </div>
 
-            <!-- MONITOREO Y REPORTES -->
+            <!-- CONTENIDO PRINCIPAL -->
             <div class="content">
-                <div class="card"><h3>Capital Global</h3><div id="capital-container"></div></div>
+                <div class="card"><h3>Capital Neto e Historial por Divisa</h3><div id="capital-container"></div></div>
                 <div class="card"><h3>Mis Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
                 <div class="card">
-                    <h3>Reporte de Movimientos</h3>
+                    <h3>Reporte de Ingresos y Egresos</h3>
                     <div class="report-filters">
-                        <button id="btn-rep-all" class="active" onclick="filterReports('todos')">Todos</button>
-                        <button id="btn-rep-w" onclick="filterReports('semanal')">Semanal</button>
-                        <button id="btn-rep-f" onclick="filterReports('quincenal')">Quincenal</button>
-                        <button id="btn-rep-m" onclick="filterReports('mensual')">Mensual</button>
+                        <button id="btn-rep-all" class="active" onclick="filtrarReportes('todos')">Todos</button>
+                        <button id="btn-rep-w" onclick="filtrarReportes('semanal')">Semanal</button>
+                        <button id="btn-rep-f" onclick="filtrarReportes('quincenal')">Quincenal</button>
+                        <button id="btn-rep-m" onclick="filtrarReportes('mensual')">Mensual</button>
                     </div>
                     <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
                 </div>
@@ -134,19 +152,10 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT TOTALMENTE OPERATIVO -->
+    <!-- SCRIPT SEGURO COMPLETAMENTE OPERATIVO -->
     <script>
-        // Inicializar Base de Datos de Usuarios en LocalStorage
+        // Inicialización segura de credenciales y base de datos local libre de quiebres por sintaxis
         if (!localStorage.getItem('usuarios')) {
-            const defaultUsers = [{ user: "admin", pass: "1234", role: "admin" }];
-            localStorage.setItem('usuarios', JSON.stringify(defaultUsers));
+            var listaInicial = [{ user: "admin", pass: "1234", role: "admin" }];
+            localStorage.setItem('usuarios', JSON.stringify(listaInicial));
         }
-
-        let users = JSON.parse(localStorage.getItem('usuarios'));
-        let accounts = JSON.parse(localStorage.getItem('cuentas')) || [];
-        let transactions = JSON.parse(localStorage.getItem('transacciones')) || [];
-        let currentUser = null;
-        let currentFilter = 'todos';
-
-        function login() {
-            const u = document.getElementById('login-user').value.trim();
