@@ -3,24 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Control Financiero Multimoneda</title>
+    <title>Sistema Financiero Multimoneda</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --dark: #1e293b;
-            --light: #f8fafc;
-            --gray: #64748b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --dark: #1e293b; --light: #f8fafc; --gray: #64748b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: #f0f2f5; color: var(--dark); min-height: 100vh; }
-        button { cursor: pointer; transition: all 0.2s ease; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; }
+        button { cursor: pointer; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; transition: 0.2s; }
         button:hover { opacity: 0.9; }
         .hidden { display: none !important; }
-
-        /* MÓDULO DE LOGIN */
         .auth-container { max-width: 400px; margin: 80px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .auth-container h2 { margin-bottom: 20px; color: var(--primary); text-align: center; }
         .form-group { margin-bottom: 15px; }
@@ -29,33 +19,23 @@
         .btn-block { width: 100%; background: var(--primary); color: white; margin-top: 10px; }
         .auth-links { text-align: center; margin-top: 15px; }
         .auth-links a { color: var(--primary); text-decoration: none; font-size: 13px; }
-
-        /* DASHBOARD PRINCIPAL */
         header { background: var(--dark); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         header button { background: var(--danger); color: white; }
         .main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
         @media(max-width: 768px) { .main-layout { grid-template-columns: 1fr; } }
-
-        /* SECCIONES / CARDS */
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card h3 { margin-bottom: 15px; font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: var(--dark); }
-        
-        /* RESUMEN DE CAPITAL */
+        .card h3 { margin-bottom: 15px; font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
         .capital-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .cap-box { background: var(--light); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); }
         .cap-box.ingresos { border-left-color: var(--success); }
         .cap-box.egresos { border-left-color: var(--danger); }
         .cap-box span { font-size: 12px; color: var(--gray); text-transform: uppercase; }
         .cap-box p { font-size: 18px; font-weight: bold; margin-top: 5px; }
-
-        /* TABLAS Y BOTONES */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background: var(--light); color: var(--gray); }
         .btn-ingreso { background: var(--success); color: white; }
         .btn-egreso { background: var(--danger); color: white; }
-        
-        /* REPORTES FILTROS */
         .report-filters { display: flex; gap: 10px; margin-bottom: 15px; }
         .report-filters button { background: #e2e8f0; color: var(--dark); }
         .report-filters button.active { background: var(--primary); color: white; }
@@ -63,9 +43,8 @@
 </head>
 <body>
 
-    <!-- ================= MODULO DE ACCESO (LOGIN) ================= -->
+    <!-- MÓDULO DE ACCESO -->
     <div id="auth-section">
-        <!-- Vista Login -->
         <div id="login-box" class="auth-container">
             <h2>Iniciar Sesión</h2>
             <div class="form-group">
@@ -77,124 +56,101 @@
                 <input type="password" id="login-pass" value="1234">
             </div>
             <button class="btn-block" onclick="login()">Ingresar</button>
-            <div class="auth-links">
-                <a href="#" onclick="switchAuth('recovery')">¿Olvidaste tu contraseña?</a>
-            </div>
+            <div class="auth-links"><a href="#" onclick="switchAuth('recovery')">¿Olvidaste tu contraseña?</a></div>
         </div>
-
-        <!-- Vista Recuperación -->
         <div id="recovery-box" class="auth-container hidden">
             <h2>Recuperar Clave</h2>
-            <p style="font-size: 13px; color: var(--gray); margin-bottom: 15px; text-align: center;">
-                Por seguridad de simulación local, introduce tu usuario para recordar la clave asignada.
-            </p>
-            <div class="form-group">
-                <label>Introduce tu Usuario</label>
-                <input type="text" id="rec-user" placeholder="Ej. admin">
-            </div>
+            <p style="font-size: 13px; color: var(--gray); margin-bottom: 15px; text-align: center;">Introduce tu usuario para recordar la clave.</p>
+            <div class="form-group"><label>Usuario</label><input type="text" id="rec-user" placeholder="admin"></div>
             <button class="btn-block" onclick="recoverPassword()">Mostrar Contraseña</button>
-            <div class="auth-links">
-                <a href="#" onclick="switchAuth('login')">Volver al Login</a>
-            </div>
+            <div class="auth-links"><a href="#" onclick="switchAuth('login')">Volver al Login</a></div>
         </div>
     </div>
 
-    <!-- ================= DASHBOARD PRINCIPAL ================= -->
+    <!-- DASHBOARD -->
     <div id="dashboard-section" class="hidden">
         <header>
             <h2>Finanzas Pro v1.0</h2>
-            <div>
-                <span id="user-display" style="margin-right: 15px; font-weight: bold;"></span>
-                <button onclick="logout()">Cerrar Sesión</button>
-            </div>
+            <div><span id="user-display" style="margin-right: 15px; font-weight: bold;"></span><button onclick="logout()">Cerrar Sesión</button></div>
         </header>
-
         <div class="main-layout">
-            <!-- COLUMNA IZQUIERDA: CREACIÓN -->
             <div class="sidebar">
-                <!-- Crear Cuenta -->
                 <div class="card">
                     <h3>Nueva Cuenta</h3>
-                    <div class="form-group">
-                        <label>Nombre de la Cuenta</label>
-                        <input type="text" id="acc-name" placeholder="Ej. Banco Banesco, Efectivo">
-                    </div>
+                    <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Efectivo USD"></div>
                     <div class="form-group">
                         <label>Moneda</label>
-                        <select id="acc-currency">
-                            <option value="USD">USD ($)</option>
-                            <option value="EUR">EUR (€)</option>
-                            <option value="VES">VES (Bs.)</option>
-                        </select>
+                        <select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="VES">VES (Bs.)</option></select>
                     </div>
-                    <div class="form-group">
-                        <label>Monto Inicial</label>
-                        <input type="number" id="acc-balance" value="0" step="0.01">
-                    </div>
+                    <div class="form-group"><label>Monto Inicial</label><input type="number" id="acc-balance" value="0" step="0.01"></div>
                     <button class="btn-block" style="background: var(--dark);" onclick="createAccount()">+ Guardar Cuenta</button>
                 </div>
-
-                <!-- Registrar Transacción -->
                 <div class="card">
-                    <h3>Registrar Movimiento</h3>
-                    <div class="form-group">
-                        <label>Cuenta de Origen/Destino</label>
-                        <select id="tx-account"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Monto</label>
-                        <input type="number" id="tx-amount" value="0" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <input type="text" id="tx-desc" placeholder="Ej. Pago de Alquiler">
-                    </div>
+                    <h3>Movimiento</h3>
+                    <div class="form-group"><label>Cuenta</label><select id="tx-account"></select></div>
+                    <div class="form-group"><label>Monto</label><input type="number" id="tx-amount" value="0" step="0.01"></div>
+                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Alquiler"></div>
                     <div style="display: flex; gap: 10px;">
                         <button class="btn-ingreso" style="flex: 1;" onclick="registerTransaction('Ingreso')">↑ Ingreso</button>
                         <button class="btn-egreso" style="flex: 1;" onclick="registerTransaction('Egreso')">↓ Egreso</button>
                     </div>
                 </div>
             </div>
-
-            <!-- COLUMNA DERECHA: MONITOREO Y REPORTES -->
             <div class="content">
-                <!-- Resumen Global -->
+                <div class="card"><h3>Capital Global</h3><div id="capital-container"></div></div>
+                <div class="card"><h3>Mis Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
                 <div class="card">
-                    <h3>Capital y Totales por Moneda</h3>
-                    <div id="capital-container"></div>
-                </div>
-
-                <!-- Lista de Cuentas -->
-                <div class="card">
-                    <h3>Mis Cuentas Activas</h3>
-                    <table id="accounts-table">
-                        <thead>
-                            <tr>
-                                <th>Nombre Cuenta</th>
-                                <th>Moneda</th>
-                                <th>Saldo Disponible</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-
-                <!-- Reportes -->
-                <div class="card">
-                    <h3>Reporte de Ingresos y Egresos de cada Cuenta</h3>
+                    <h3>Reporte de Movimientos</h3>
                     <div class="report-filters">
                         <button id="btn-rep-all" class="active" onclick="filterReports('todos')">Todos</button>
                         <button id="btn-rep-w" onclick="filterReports('semanal')">Semanal</button>
                         <button id="btn-rep-f" onclick="filterReports('quincenal')">Quincenal</button>
                         <button id="btn-rep-m" onclick="filterReports('mensual')">Mensual</button>
                     </div>
-                    <table id="reports-table">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Cuenta</th>
-                                <th>Tipo</th>
-                                <th>Descripción</th>
-                                <th>Monto</th>
-                            </tr>
-                        </thead>
+                    <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        const USER_DB = { user: "admin", pass: "1234" };
+        let accounts = JSON.parse(localStorage.getItem('cuentas')) || [];
+        let transactions = JSON.parse(localStorage.getItem('transacciones')) || [];
+        let currentFilter = 'todos';
+
+        function login() {
+            const u = document.getElementById('login-user').value;
+            const p = document.getElementById('login-pass').value;
+            if(u === USER_DB.user && p === USER_DB.pass) {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('user-display').innerText = `Hola, ${u}`;
+                initSystem();
+            } else { alert("Usuario o clave incorrectos."); }
+        }
+        function logout() {
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+        }
+        function switchAuth(view) {
+            if(view === 'recovery') {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('recovery-box').classList.remove('hidden');
+            } else {
+                document.getElementById('recovery-box').classList.add('hidden');
+                document.getElementById('login-box').classList.remove('hidden');
+            }
+        }
+        function recoverPassword() {
+            const user = document.getElementById('rec-user').value;
+            if(user === USER_DB.user) { alert(`Tu contraseña es: ${USER_DB.pass}`); }
+            else { alert("Usuario no encontrado."); }
+        }
+        function initSystem() { renderAccounts(); renderCapital(); updateAccountSelect(); renderReports(); }
+        
+        function createAccount() {
+            const name = document.getElementById('acc-name').value.trim();
+            const currency = document.getElementById('acc-currency').value;
+            const balance = parseFloat(document.getElementById('acc-balance').value) || 0;
