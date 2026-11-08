@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Control Financiero Pro</title>
+    <title>Sistema Control Financiero Avanzado</title>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --warning: #d97706; --dark: #1e293b; --light: #f8fafc; --gray: #64748b; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
@@ -39,7 +39,7 @@
     </style>
 </head>
 <body>
-    <!-- SECCIÓN DE AUTENTICACIÓN -->
+    <!-- MÓDULO DE INICIO DE SESIÓN -->
     <div id="auth-section">
         <div id="login-box" class="auth-container">
             <div style="text-align: center; margin-bottom: 15px;">
@@ -53,13 +53,13 @@
         </div>
         <div id="recovery-box" class="auth-container hidden">
             <h2>Recuperar Clave</h2>
-            <p style="font-size:13px; color:var(--gray); margin-bottom:15px; text-align:center;">Introduce tu usuario para recordar tu contraseña.</p>
+            <p style="font-size:13px; color:var(--gray); margin-bottom:15px; text-align:center;">Introduce tu usuario para recordar la clave.</p>
             <div class="form-group"><label>Usuario</label><input type="text" id="rec-user" placeholder="admin"></div>
             <button class="btn-block" onclick="ejecutarRecuperacion()">Mostrar Contraseña</button>
             <p style="text-align:center; margin-top:15px;"><a href="#" onclick="cambiarVistaAuth('login')" style="font-size:13px; color:var(--primary); text-decoration:none;">Volver al Login</a></p>
         </div>
     </div>
-    <!-- INTERFAZ PRINCIPAL DEL PANEL -->
+    <!-- DASHBOARD PRINCIPAL -->
     <div id="dashboard-section" class="hidden">
         <header>
             <div style="display: flex; align-items: center;">
@@ -72,7 +72,7 @@
         </header>
 
         <div class="main-layout">
-            <!-- BARRA LATERAL IZQUIERDA: FORMULARIOS -->
+            <!-- BARRA LATERAL IZQUIERDA -->
             <div class="sidebar">
                 <div class="card" id="admin-card">
                     <h3>Gestión de Usuarios (Admin)</h3>
@@ -85,63 +85,53 @@
 
                 <div class="card">
                     <h3>Nueva Cuenta</h3>
-                    <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Caja USD"></div>
+                    <div class="form-group"><label>Nombre Cuenta</label><input type="text" id="acc-name" placeholder="Ej. Banesco"></div>
                     <div class="form-group"><label>Moneda</label><select id="acc-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="VES">VES (Bs.)</option></select></div>
                     <div class="form-group"><label>Monto Inicial</label><input type="number" id="acc-balance" value="0" step="0.01"></div>
                     <button class="btn-block" style="background:var(--dark); color:white;" onclick="crearCuenta()">+ Guardar Cuenta</button>
                 </div>
 
+                <!-- MÓDULO DE MOVIMIENTOS REFORMADO CON DESPLEGABLE -->
                 <div class="card">
-                    <h3>Registrar Ingresos / Movimientos</h3>
-                    <div class="form-group"><label>Cuenta</label><select id="tx-account" class="acc-select-bind"></select></div>
+                    <h3>Registrar Movimiento / Transacción</h3>
+                    <div class="form-group"><label>Tipo de Operación</label><select id="tx-type"><option value="Ingreso">↑ Ingreso (Suma al Capital)</option><option value="Egreso">↓ Egreso / Gasto (Resta del Capital)</option></select></div>
+                    <div class="form-group"><label>Cuenta Seleccionada</label><select id="tx-account" class="acc-select-bind"></select></div>
                     <div class="form-group"><label>Monto</label><input type="number" id="tx-amount" value="0" step="0.01"></div>
-                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Venta"></div>
-                    <div style="display:flex; gap:10px;"><button style="background:var(--success); color:white; flex:1;" onclick="registrarMovimiento('Ingreso')">↑ Ingreso</button><button style="background:var(--danger); color:white; flex:1;" onclick="registrarMovimiento('Egreso')">↓ Egreso</button></div>
+                    <div class="form-group"><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej. Concepto u origen"></div>
+                    <button class="btn-block" style="background:var(--primary); color:white;" onclick="procesarMovimientoDesplegable()">Ejecutar Operación</button>
                 </div>
             </div>
-            <!-- CONTENIDO CENTRAL: CRÉDITOS, DEBITOS Y PENDIENTES -->
+            <!-- CONTENIDO CENTRAL -->
             <div class="content">
                 <div class="card"><h3>Capital Neto e Historial por Divisa</h3><div id="capital-container"></div></div>
                 <div class="card"><h3>Mis Cuentas Activas</h3><table id="accounts-table"><thead><tr><th>Nombre Cuenta</th><th>Moneda</th><th>Saldo Disponible</th></tr></thead><tbody></tbody></table></div>
 
-                <!-- MÓDULO DE GASTOS DIRECTOS -->
+                <!-- MÓDULO DE CUENTAS POR PAGAR -->
                 <div class="card">
-                    <h3>Módulo de Registro de Gastos (Débito Directo de Capital)</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; align-items: flex-end;">
-                        <div class="form-group"><label>Cuenta a Debitar</label><select id="gasto-account" class="acc-select-bind"></select></div>
-                        <div class="form-group"><label>Monto Gasto</label><input type="number" id="gasto-amount" value="0" step="0.01"></div>
-                        <div class="form-group"><label>Categoría / Detalle</label><input type="text" id="gasto-desc" placeholder="Ej. Servicios, Luz"></div>
-                        <button style="background:var(--danger); color:white; margin-bottom:12px;" onclick="registrarGastoDirecto()">Ejecutar Gasto</button>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN DE CUENTAS POR PAGAR (PASIVOS) -->
-                <div class="card">
-                    <h3>Cuentas Pendientes por Pagar</h3>
+                    <h3>Cuentas Pendientes por Pagar (Pasivos)</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
                         <div class="form-group"><label>Proveedor / Acreedor</label><input type="text" id="cxp-prov"></div>
-                        <div class="form-group"><label>Monto</label><input type="number" id="cxp-amount" value="0" step="0.01"></div>
+                        <div class="form-group"><label>Monto de la Deuda</label><input type="number" id="cxp-amount" value="0" step="0.01"></div>
                         <div class="form-group"><label>Moneda</label><select id="cxp-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="VES">VES</option></select></div>
-                        <button style="background:var(--warning); color:white; margin-bottom:12px;" onclick="crearCXP()">+ Crear Deuda</button>
+                        <button style="background:var(--warning); color:white; margin-bottom:12px;" onclick="crearCXP()">+ Registrar Deuda</button>
                     </div>
-                    <table id="cxp-table"><thead><tr><th>Proveedor</th><th>Monto</th><th>Moneda</th><th>Estado</th><th>Pagar Con</th><th>Acción</th></tr></thead><tbody></tbody></table>
+                    <table id="cxp-table"><thead><tr><th>Proveedor</th><th>Monto</th><th>Moneda</th><th>Estado</th><th>Pagar Desde</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
-
-                <!-- SECCIÓN DE CUENTAS POR COBRAR (ACTIVOS) -->
+                <!-- MÓDULO DE CUENTAS POR COBRAR -->
                 <div class="card">
-                    <h3>Cuentas Pendientes por Cobrar</h3>
+                    <h3>Cuentas Pendientes por Cobrar (Activos)</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px;">
                         <div class="form-group"><label>Cliente / Deudor</label><input type="text" id="cxc-cli"></div>
-                        <div class="form-group"><label>Monto</label><input type="number" id="cxc-amount" value="0" step="0.01"></div>
+                        <div class="form-group"><label>Monto a Cobrar</label><input type="number" id="cxc-amount" value="0" step="0.01"></div>
                         <div class="form-group"><label>Moneda</label><select id="cxc-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="VES">VES</option></select></div>
-                        <button style="background:var(--success); color:white; margin-bottom:12px;" onclick="crearCXC()">+ Crear Cobro</button>
+                        <button style="background:var(--success); color:white; margin-bottom:12px;" onclick="crearCXC()">+ Registrar Cobro</button>
                     </div>
                     <table id="cxc-table"><thead><tr><th>Cliente</th><th>Monto</th><th>Moneda</th><th>Estado</th><th>Recibir En</th><th>Acción</th></tr></thead><tbody></tbody></table>
                 </div>
 
-                <!-- HISTORIAL GLOBAL -->
+                <!-- SECCIÓN DE REPORTES TEMPORALES -->
                 <div class="card">
-                    <h3>Reporte e Historial General de Movimientos</h3>
+                    <h3>Reporte Semanal, Quincenal y Mensual de Movimientos</h3>
                     <div class="report-filters"><button id="btn-rep-all" class="active" onclick="filterReports('todos')">Todos</button><button id="btn-rep-w" onclick="filterReports('semanal')">Semanal</button><button id="btn-rep-f" onclick="filterReports('quincenal')">Quincenal</button><button id="btn-rep-m" onclick="filterReports('mensual')">Mensual</button></div>
                     <table id="reports-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
                 </div>
@@ -149,12 +139,12 @@
         </div>
     </div>
     <script>
-        // Inicialización y persistencia de Base de Datos
+        // Verificación de almacenamiento local seguro
         if (!localStorage.getItem('usuarios')) { localStorage.setItem('usuarios', JSON.stringify([{ user: "admin", pass: "1234", role: "admin" }])); }
-        if (!localStorage.getItem('cuentas')) { localStorage.setItem('cuentas', JSON.stringify([])); }
-        if (!localStorage.getItem('transacciones')) { localStorage.setItem('transacciones', JSON.stringify([])); }
-        if (!localStorage.getItem('cxp')) { localStorage.setItem('cxp', JSON.stringify([])); }
-        if (!localStorage.getItem('cxc')) { localStorage.setItem('cxc', JSON.stringify([])); }
+        if (!localStorage.getItem('cuentas')) { localStorage.setItem('cuentas', JSON.stringify()); }
+        if (!localStorage.getItem('transacciones')) { localStorage.setItem('transacciones', JSON.stringify()); }
+        if (!localStorage.getItem('cxp')) { localStorage.setItem('cxp', JSON.stringify()); }
+        if (!localStorage.getItem('cxc')) { localStorage.setItem('cxc', JSON.stringify()); }
 
         var dbUsuarios = JSON.parse(localStorage.getItem('usuarios'));
         var dbCuentas = JSON.parse(localStorage.getItem('cuentas'));
@@ -211,8 +201,7 @@
         }
 
         function actualizarListaUsuarios() {
-            var tbody = document.querySelector('#users-table tbody');
-            var filas = '';
+            var tbody = document.querySelector('#users-table tbody'), filas = '';
             for (var i = 0; i < dbUsuarios.length; i++) {
                 var u = dbUsuarios[i];
                 var btn = u.user !== 'admin' ? "<button style='background:var(--danger);color:white;padding:2px 6px;font-size:10px;' onclick='eliminarUsuario(\""+u.user+"\")'>X</button>" : "-";
@@ -220,19 +209,17 @@
             }
             tbody.innerHTML = filas;
         }
+
         function crearUsuario() {
             var n = document.getElementById('new-username').value.trim();
             var c = document.getElementById('new-password').value.trim();
             var r = document.getElementById('new-role').value;
             if (!n || !c) return alert("Campos vacíos.");
-            for (var i = 0; i < dbUsuarios.length; i++) {
-                if (dbUsuarios[i].user === n) return alert("Ya existe.");
-            }
+            for (var i = 0; i < dbUsuarios.length; i++) { if (dbUsuarios[i].user === n) return alert("Ya existe."); }
             dbUsuarios.push({ user: n, pass: c, role: r });
             localStorage.setItem('usuarios', JSON.stringify(dbUsuarios));
             actualizarListaUsuarios();
-            document.getElementById('new-username').value = '';
-            document.getElementById('new-password').value = '';
+            document.getElementById('new-username').value = ''; document.getElementById('new-password').value = '';
         }
 
         function eliminarUsuario(nombre) {
@@ -249,52 +236,32 @@
             renderCXP();
             renderCXC();
         }
-
         function crearCuenta() {
             var n = document.getElementById('acc-name').value.trim();
             var m = document.getElementById('acc-currency').value;
             var b = parseFloat(document.getElementById('acc-balance').value) || 0;
             if (!n) return alert("Indique un nombre.");
             dbCuentas.push({ id: Date.now(), name: n, currency: m, current: b });
-            saveAll();
-            inicializarTablasDashboard();
-            document.getElementById('acc-name').value = '';
-            document.getElementById('acc-balance').value = '0';
+            saveAll(); inicializarTablasDashboard();
+            document.getElementById('acc-name').value = ''; document.getElementById('acc-balance').value = '0';
         }
 
-        function registrarMovimiento(tipo) {
+        function procesarMovimientoDesplegable() {
+            var tipo = document.getElementById('tx-type').value;
             var id = parseInt(document.getElementById('tx-account').value);
             var monto = parseFloat(document.getElementById('tx-amount').value) || 0;
             var desc = document.getElementById('tx-desc').value.trim() || 'Movimiento general';
-            if (!id || monto <= 0) return alert("Datos inválidos.");
+            if (!id || monto <= 0) return alert("Datos de transacción inválidos.");
             var cuenta = dbCuentas.find(a => a.id === id);
             if (tipo === 'Egreso' && cuenta.current < monto) {
-                if (!confirm("Fondos insuficientes. ¿Forzar?")) return;
+                if (!confirm("Fondos insuficientes en la cuenta. ¿Desea forzar el débito?")) return;
             }
             cuenta.current += (tipo === 'Ingreso' ? monto : -monto);
             dbTransacciones.push({ date: new Date().toISOString(), accountId: id, accountName: cuenta.name, currency: cuenta.currency, type: tipo, desc: desc, amount: monto });
-            saveAll();
-            inicializarTablasDashboard();
-            document.getElementById('tx-amount').value = '0';
-            document.getElementById('tx-desc').value = '';
+            saveAll(); inicializarTablasDashboard();
+            document.getElementById('tx-amount').value = '0'; document.getElementById('tx-desc').value = '';
         }
 
-        function registrarGastoDirecto() {
-            var id = parseInt(document.getElementById('gasto-account').value);
-            var monto = parseFloat(document.getElementById('gasto-amount').value) || 0;
-            var desc = document.getElementById('gasto-desc').value.trim() || 'Gasto directo';
-            if (!id || monto <= 0) return alert("Seleccione cuenta y monto.");
-            var cuenta = dbCuentas.find(a => a.id === id);
-            if (cuenta.current < monto) {
-                if (!confirm("Esta cuenta no tiene fondos suficientes. ¿Desea ejecutar el débito igualmente?")) return;
-            }
-            cuenta.current -= monto;
-            dbTransacciones.push({ date: new Date().toISOString(), accountId: id, accountName: cuenta.name, currency: cuenta.currency, type: 'Egreso', desc: 'Gasto: ' + desc, amount: monto });
-            saveAll();
-            inicializarTablasDashboard();
-            document.getElementById('gasto-amount').value = '0';
-            document.getElementById('gasto-desc').value = '';
-        }
         function crearCXP() {
             var p = document.getElementById('cxp-prov').value.trim();
             var a = parseFloat(document.getElementById('cxp-amount').value) || 0;
@@ -309,22 +276,20 @@
             var tbody = document.querySelector('#cxp-table tbody'), html = '';
             dbCXP.forEach(item => {
                 var selectCuentas = `<select id="pay-select-${item.id}">` + dbCuentas.filter(a => a.currency === item.currency).map(a => `<option value="${a.id}">${a.name}</option>`).join('') + `</select>`;
-                var btn = item.status === 'Pendiente' ? `<button style="background:var(--danger);color:white;" onclick="pagarCXP(${item.id})">Pagar</button>` : 'Liquidada';
+                var btn = item.status === 'Pendiente' ? `<button style="background:var(--danger);color:white;" onclick="pagarCXP(${item.id})">Liquidar</button>` : 'Cancelada';
                 html += `<tr><td>${item.prov}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td><span class="badge ${item.status === 'Pendiente' ? 'pendientes' : 'pagadas'}">${item.status}</span></td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
             });
-            tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;">No hay cuentas por pagar.</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;">No hay cuentas por pagar pendientes.</td></tr>';
         }
 
         function pagarCXP(id) {
             var item = dbCXP.find(x => x.id === id);
-            var selectElement = document.getElementById('pay-select-' + id);
-            if (!selectElement || !selectElement.value) return alert("Debe crear una cuenta en la moneda correspondiente primero.");
-            var idAcc = parseInt(selectElement.value);
+            var idAcc = parseInt(document.getElementById('pay-select-' + id).value);
+            if (!idAcc) return alert("Cree una cuenta para esta divisa primero.");
             var cuenta = dbCuentas.find(a => a.id === idAcc);
-            if (cuenta.current < item.amount && !confirm("Saldo insuficiente. ¿Forzar débito de la cuenta?")) return;
-            cuenta.current -= item.amount;
-            item.status = 'Pagada';
-            dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Egreso', desc: 'Pago a Proveedor: ' + item.prov, amount: item.amount });
+            if (cuenta.current < item.amount && !confirm("Falta saldo. ¿Forzar el egreso de la cuenta?")) return;
+            cuenta.current -= item.amount; item.status = 'Cancelada';
+            dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Egreso', desc: 'Pago Pasivo: ' + item.prov, amount: item.amount });
             saveAll(); inicializarTablasDashboard();
         }
 
@@ -345,18 +310,16 @@
                 var btn = item.status === 'Pendiente' ? `<button style="background:var(--success);color:white;" onclick="cobrarCXC(${item.id})">Cobrar</button>` : 'Cobrada';
                 html += `<tr><td>${item.cli}</td><td>${item.amount.toFixed(2)}</td><td>${item.currency}</td><td><span class="badge ${item.status === 'Pendiente' ? 'pendientes' : 'pagadas'}">${item.status}</span></td><td>${item.status === 'Pendiente' ? selectCuentas : '-'}</td><td>${btn}</td></tr>`;
             });
-            tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;">No hay cuentas por cobrar.</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;">No hay cuentas por cobrar pendientes.</td></tr>';
         }
 
         function cobrarCXC(id) {
             var item = dbCXC.find(x => x.id === id);
-            var selectElement = document.getElementById('collect-select-' + id);
-            if (!selectElement || !selectElement.value) return alert("Debe crear una cuenta en la moneda correspondiente primero.");
-            var idAcc = parseInt(selectElement.value);
+            var idAcc = parseInt(document.getElementById('collect-select-' + id).value);
+            if (!idAcc) return alert("Cree una cuenta para esta divisa primero.");
             var cuenta = dbCuentas.find(a => a.id === idAcc);
-            cuenta.current += item.amount;
-            item.status = 'Pagada';
-            dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Ingreso', desc: 'Cobro a Cliente: ' + item.cli, amount: item.amount });
+            cuenta.current += item.amount; item.status = 'Cobrada';
+            dbTransacciones.push({ date: new Date().toISOString(), accountId: idAcc, accountName: cuenta.name, currency: cuenta.currency, type: 'Ingreso', desc: 'Cobro Activo: ' + item.cli, amount: item.amount });
             saveAll(); inicializarTablasDashboard();
         }
 
@@ -377,7 +340,7 @@
                 var cap = fil.reduce((s, a) => s + a.current, 0);
                 var ing = dbTransacciones.filter(t => t.currency === m && t.type === 'Ingreso').reduce((s, t) => s + t.amount, 0);
                 var egr = dbTransacciones.filter(t => t.currency === m && t.type === 'Egreso').reduce((s, t) => s + t.amount, 0);
-                con.innerHTML += `<div style="margin-bottom:10px;"><h5>Moneda: ${m}</h5><div class="capital-grid"><div class="cap-box"><span>Capital</span><p>${cap.toFixed(2)} ${m}</p></div><div class="cap-box ingresos"><span>Ingresos</span><p>+${ing.toFixed(2)}</p></div><div class="cap-box egresos"><span>Egresos</span><p>-${egr.toFixed(2)}</p></div></div></div>`;
+                con.innerHTML += `<div style="margin-bottom:10px;"><h5>Moneda: ${m}</h5><div class='capital-grid'><div class='cap-box'><span>Capital</span><p>${cap.toFixed(2)} ${m}</p></div><div class='cap-box ingresos'><span>Ingresos</span><p>+${ing.toFixed(2)}</p></div><div class='cap-box egresos'><span>Egresos</span><p>-${egr.toFixed(2)}</p></div></div></div>`;
             });
         }
 
@@ -389,10 +352,10 @@
                 var d = Math.ceil(Math.abs(ahora - new Date(t.date)) / 86400000);
                 return filtroTiempoActual === 'semanal' ? d <= 7 : filtroTiempoActual === 'quincenal' ? d <= 15 : filtroTiempoActual === 'mensual' ? d <= 30 : true;
             }).sort((a, b) => new Date(b.date) - new Date(a.date));
-            tbody.innerHTML = fil.map(t => `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.accountName}</td><td style="color:${t.type==='Ingreso'?'var(--success)':'var(--danger)'}; font-weight:bold;">${t.type}</td><td>${t.desc}</td><td style="font-weight:bold;">${t.type==='Ingreso'?'+':'-'}${t.amount.toFixed(2)} ${t.currency}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;">Sin movimientos.</td></tr>';
+            tbody.innerHTML = fil.map(t => `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.accountName}</td><td style="color:${t.type==='Ingreso'?'var(--success)':'var(--danger)'}; font-weight:bold;">${t.type}</td><td>${t.desc}</td><td style="font-weight:bold;">${t.type==='Ingreso'?'+':'-'}${t.amount.toFixed(2)} ${t.currency}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;">Sin movimientos en este período.</td></tr>';
         }
 
-        function saveAll() { localStorage.setItem('u', JSON.stringify(dbUsuarios)); localStorage.setItem('cuentas', JSON.stringify(dbCuentas)); localStorage.setItem('transacciones', JSON.stringify(dbTransacciones)); localStorage.setItem('cxp', JSON.stringify(dbCXP)); localStorage.setItem('cxc', JSON.stringify(dbCXC)); }
+        function saveAll() { localStorage.setItem('usuarios', JSON.stringify(dbUsuarios)); localStorage.setItem('cuentas', JSON.stringify(dbCuentas)); localStorage.setItem('transacciones', JSON.stringify(dbTransacciones)); localStorage.setItem('cxp', JSON.stringify(dbCXP)); localStorage.setItem('cxc', JSON.stringify(dbCXC)); }
     </script>
 </body>
 </html>
